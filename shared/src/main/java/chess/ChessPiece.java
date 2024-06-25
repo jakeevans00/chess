@@ -11,7 +11,6 @@ import java.util.*;
 public class ChessPiece {
     PieceType pieceType;
     ChessGame.TeamColor teamColor;
-    boolean hasMoved = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceType = type;
@@ -124,15 +123,8 @@ public class ChessPiece {
     }
 
     public HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
-        int direction;
-        if (this.getTeamColor() == ChessGame.TeamColor.BLACK) {
-            direction = -1;
-        } else {
-            direction = 1;
-        }
-
-        int[][] directions = {{direction,0}};
-
+        int direction = (this.getTeamColor() == ChessGame.TeamColor.BLACK) ? -1 : 1;
+        int[][] directions = hasMoved ? new int[][] {{direction, 0}} : new int[][] {{direction, 0}, {direction * 2, 0}};
         return getSingleMoves(board, myPosition, directions);
     }
 
