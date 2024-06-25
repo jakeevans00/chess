@@ -11,8 +11,9 @@ import java.util.*;
 public class ChessPiece {
     PieceType pieceType;
     ChessGame.TeamColor teamColor;
+    boolean hasMoved = false;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceType = type;
         this.teamColor = pieceColor;
     }
@@ -61,6 +62,15 @@ public class ChessPiece {
     }
 
     /**
+     * Determines whether another piece is an ally or enemy
+     * @param piece the piece being evaluated
+     * @return true for ally, false for enemy
+     */
+    public boolean isAlly(ChessPiece piece) {
+        return this.teamColor == piece.teamColor;
+    }
+
+    /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
      * danger
@@ -89,15 +99,19 @@ public class ChessPiece {
     }
 
     public HashSet<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        int[][] directions = {{-1, 0}, {-1, 1},{0,1},{1,1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}};
+        return getSingleMoves(board, myPosition, directions);
     }
 
     public HashSet<ChessMove> getQueenMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        HashSet<ChessMove> moves = new HashSet<>(getDiagonalMoves(board, myPosition));
+        moves.addAll(getOrthogonalMoves(board, myPosition));
+        return moves;
+
     }
 
     public HashSet<ChessMove> getRookMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        return getOrthogonalMoves(board, myPosition);
     }
 
     public HashSet<ChessMove> getBishopMoves(ChessBoard board, ChessPosition myPosition) {
@@ -105,16 +119,50 @@ public class ChessPiece {
     }
 
     public HashSet<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        int[][] directions = {{-2, 1}, {-2, -1},{-1,2},{-1,-2}, {1, 2}, {1, -2}, {2, 1}, {2, -1}};
+        return getSingleMoves(board, myPosition, directions);
     }
 
     public HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        int direction;
+        if (this.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            direction = -1;
+        } else {
+            direction = 1;
+        }
+
+        int[][] directions = {{direction,0}};
+
+        return getSingleMoves(board, myPosition, directions);
     }
 
     public HashSet<ChessMove> getDiagonalMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves = new HashSet<>();
         int[][] directions = {{1,1},{-1,1},{1, -1},{-1,-1}};
+        return new HashSet<>(getExtendedMoves(board, myPosition, directions));
+    }
+
+    public HashSet<ChessMove> getOrthogonalMoves(ChessBoard board, ChessPosition myPosition) {
+        int[][] directions = {{1,0},{0,1},{-1,0},{0,-1}};
+        return new HashSet<>(getExtendedMoves(board, myPosition, directions));
+    }
+
+    public HashSet<ChessMove> getSingleMoves(ChessBoard board, ChessPosition myPosition, int[][] directions) {
+        HashSet<ChessMove> moves = new HashSet<>();
+
+        for (int[] direction : directions) {
+            ChessPosition nextPosition = new ChessPosition(myPosition.getRow() + direction[0], myPosition.getColumn() + direction[1]);
+            ChessPiece nextPiece = board.getPiece(nextPosition);
+
+            if ((nextPiece != null && nextPiece.isAlly(this)) || !nextPosition.isValid()) {
+                continue;
+            }
+            moves.add(new ChessMove(myPosition, nextPosition));
+        }
+        return moves;
+    }
+
+    public HashSet<ChessMove> getExtendedMoves(ChessBoard board, ChessPosition myPosition, int[][] directions) {
+        HashSet<ChessMove> moves = new HashSet<>();
 
         for (int[] direction : directions) {
             int nextRow = myPosition.getRow();
@@ -124,11 +172,10 @@ public class ChessPiece {
                 nextRow += direction[0];
                 nextColumn += direction[1];
                 ChessPosition nextPosition  = new ChessPosition(nextRow, nextColumn);
-
                 ChessPiece nextPiece = board.getPiece(nextPosition);
                 ChessMove possibleMove = new ChessMove(myPosition, nextPosition);
 
-                if ((nextPiece != null && nextPiece.getTeamColor() == this.teamColor) || !ChessBoard.inBounds(nextPosition)) {
+                if ((nextPiece != null && nextPiece.isAlly(this)) || !nextPosition.isValid()) {
                     break;
                 }
 
@@ -139,7 +186,6 @@ public class ChessPiece {
                 }
             }
         }
-
         return moves;
     }
 }

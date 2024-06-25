@@ -13,6 +13,7 @@ import java.util.Objects;
  */
 public class ChessBoard {
     Map<ChessPosition, ChessPiece> chessPieces = new HashMap<>();
+    int BOARD_SIZE = 8;
 
     public ChessBoard() {
     }
@@ -48,15 +49,12 @@ public class ChessBoard {
         throw new RuntimeException("Not implemented");
     }
 
-    public static boolean inBounds(ChessPosition position) {
-        int row = position.getRow();
-        int column = position.getColumn();
-
-        return row >= 1 && row <= 8 && column >= 1 && column <= 8;
-    }
-
     public String toString() {
         return chessPieces.toString();
+    }
+
+    public static int getBoardSize(ChessBoard board) {
+        return board.BOARD_SIZE;
     }
 
     @Override
