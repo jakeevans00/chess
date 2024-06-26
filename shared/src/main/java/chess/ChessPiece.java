@@ -124,10 +124,32 @@ public class ChessPiece {
     }
 
     public HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
-        int direction = (this.getTeamColor() == ChessGame.TeamColor.BLACK) ? -1 : 1;
+        HashSet<ChessMove> moves = new HashSet<>();
 
-        int[][] directions = hasMoved ? new int[][] {{direction, 0}} : new int[][] {{direction, 0}, {direction * 2, 0}};
-        return getSingleMoves(board, myPosition, directions);
+        int mod = (this.getTeamColor() == ChessGame.TeamColor.BLACK) ? -1 : 1;
+        List<int[]> directions = new ArrayList<>(List.of(
+                new int[] {mod, 0},   // Move one square forward
+                new int[] {mod, -1},   // Capture diagonally right
+                new int[] {mod, 1}   // Capture diagonally left
+        ));
+
+        ChessPiece blockPiece = board.getPiece(new ChessPosition(myPosition.getRow()+mod, myPosition.getColumn()));
+        if (!hasMoved && ChessBoard.atStartingPosition(this, myPosition) && blockPiece == null) {
+            directions.add(new int[] {mod * 2, 0});
+        }
+
+        for (int[] direction : directions) {
+            ChessPosition nextPosition = new ChessPosition(myPosition.getRow() + direction[0], myPosition.getColumn() + direction[1]);
+            ChessPiece nextPiece = board.getPiece(nextPosition);
+
+            if (nextPiece != null && !isAlly(nextPiece) && nextPosition.getColumn() != myPosition.getColumn()) {
+                moves.add(new ChessMove(myPosition, nextPosition));
+            }
+            if (nextPiece == null && nextPosition.getColumn() == myPosition.getColumn()) {
+                moves.add(new ChessMove(myPosition, nextPosition));
+            }
+        }
+        return moves;
     }
 
     public HashSet<ChessMove> getDiagonalMoves(ChessBoard board, ChessPosition myPosition) {
@@ -182,6 +204,5 @@ public class ChessPiece {
         }
         return moves;
     }
-
 
 }

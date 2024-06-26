@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static java.util.Map.entry;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -37,6 +39,11 @@ public class ChessBoard {
             'k', ChessPiece.PieceType.KING,
             'b', ChessPiece.PieceType.BISHOP);
 
+    final static Map<ChessPiece, ChessPosition> STARTING_POSITIONS = Map.ofEntries(
+            entry(new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN), new ChessPosition(2,1)),
+            entry(new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN), new ChessPosition(7,1))
+    );
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -58,6 +65,11 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return this.chessPieces.get(position);
+    }
+
+    public static boolean atStartingPosition(ChessPiece piece, ChessPosition position) {
+        ChessPosition expectedPosition = ChessBoard.STARTING_POSITIONS.get(piece);
+        return expectedPosition.getRow() == position.getRow();
     }
 
     /**
