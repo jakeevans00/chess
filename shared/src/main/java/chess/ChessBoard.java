@@ -18,6 +18,25 @@ public class ChessBoard {
     public ChessBoard() {
     }
 
+    final String STANDARD_BOARD = """
+                        |r|n|b|q|k|b|n|r|
+                        |p|p|p|p|p|p|p|p|
+                        | | | | | | | | |
+                        | | | | | | | | |
+                        | | | | | | | | |
+                        | | | | | | | | |
+                        |P|P|P|P|P|P|P|P|
+                        |R|N|B|Q|K|B|N|R|
+                        """;
+
+    final static Map<Character, ChessPiece.PieceType> CHAR_TO_TYPE_MAP = Map.of(
+            'p', ChessPiece.PieceType.PAWN,
+            'n', ChessPiece.PieceType.KNIGHT,
+            'r', ChessPiece.PieceType.ROOK,
+            'q', ChessPiece.PieceType.QUEEN,
+            'k', ChessPiece.PieceType.KING,
+            'b', ChessPiece.PieceType.BISHOP);
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -46,7 +65,7 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        loadBoard(STANDARD_BOARD);
     }
 
     public String toString() {
@@ -55,6 +74,34 @@ public class ChessBoard {
 
     public static int getBoardSize(ChessBoard board) {
         return board.BOARD_SIZE;
+    }
+
+    public void loadBoard(String boardText) {
+        chessPieces.clear();
+
+        int row = 8;
+        int column = 1;
+        for (var c : boardText.toCharArray()) {
+            switch (c) {
+                case '\n' -> {
+                    column = 1;
+                    row--;
+                }
+                case ' ' -> column++;
+                case '|' -> {
+                }
+                default -> {
+                    ChessGame.TeamColor color = Character.isLowerCase(c) ? ChessGame.TeamColor.BLACK
+                            : ChessGame.TeamColor.WHITE;
+                    var type = CHAR_TO_TYPE_MAP.get(Character.toLowerCase(c));
+                    var position = new ChessPosition(row, column);
+                    var piece = new ChessPiece(color, type);
+//                    this.chessPieces.addPiece(position, piece);
+                    chessPieces.put(position, piece);
+                    column++;
+                }
+            }
+        }
     }
 
     @Override
@@ -69,4 +116,6 @@ public class ChessBoard {
     public int hashCode() {
         return Objects.hashCode(chessPieces);
     }
+
+
 }
