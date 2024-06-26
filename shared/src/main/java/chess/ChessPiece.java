@@ -127,26 +127,21 @@ public class ChessPiece {
         HashSet<ChessMove> moves = new HashSet<>();
 
         int mod = (this.getTeamColor() == ChessGame.TeamColor.BLACK) ? -1 : 1;
-        List<int[]> directions = new ArrayList<>(List.of(
-                new int[] {mod, 0},   // Move one square forward
-                new int[] {mod, -1},   // Capture diagonally right
-                new int[] {mod, 1}   // Capture diagonally left
-        ));
-
-        ChessPiece blockPiece = board.getPiece(new ChessPosition(myPosition.getRow()+mod, myPosition.getColumn()));
-        if (!hasMoved && ChessBoard.atStartingPosition(this, myPosition) && blockPiece == null) {
-            directions.add(new int[] {mod * 2, 0});
-        }
+        List<int[]> directions = initializePawnDirections(mod, board, myPosition);
 
         for (int[] direction : directions) {
             ChessPosition nextPosition = new ChessPosition(myPosition.getRow() + direction[0], myPosition.getColumn() + direction[1]);
             ChessPiece nextPiece = board.getPiece(nextPosition);
 
-            if (nextPiece != null && !isAlly(nextPiece) && nextPosition.getColumn() != myPosition.getColumn()) {
-                moves.add(new ChessMove(myPosition, nextPosition));
-            }
-            if (nextPiece == null && nextPosition.getColumn() == myPosition.getColumn()) {
-                moves.add(new ChessMove(myPosition, nextPosition));
+            if (isValidPawnMove(nextPiece, nextPosition, myPosition)) {
+                if (nextPosition.getRow() == 1 || nextPosition.getRow() == 8) {
+                    moves.add(new ChessMove(myPosition, nextPosition, PieceType.QUEEN));
+                    moves.add(new ChessMove(myPosition, nextPosition, PieceType.BISHOP));
+                    moves.add(new ChessMove(myPosition, nextPosition, PieceType.ROOK));
+                    moves.add(new ChessMove(myPosition, nextPosition, PieceType.KNIGHT));
+                } else {
+                    moves.add(new ChessMove(myPosition, nextPosition));
+                }
             }
         }
         return moves;
@@ -203,6 +198,26 @@ public class ChessPiece {
             }
         }
         return moves;
+    }
+
+    public List<int[]> initializePawnDirections(int mod, ChessBoard board, ChessPosition myPosition) {
+        List<int[]> directions = new ArrayList<>(List.of(
+                new int[] {mod, 0},   // Move one square forward
+                new int[] {mod, -1},   // Capture diagonally right
+                new int[] {mod, 1}   // Capture diagonally left
+        ));
+
+        ChessPiece blockPiece = board.getPiece(new ChessPosition(myPosition.getRow()+mod, myPosition.getColumn()));
+        if (!hasMoved && ChessBoard.atStartingPosition(this, myPosition) && blockPiece == null) {
+            directions.add(new int[] {mod * 2, 0});
+        }
+
+        return directions;
+    }
+
+    public boolean isValidPawnMove(ChessPiece nextPiece, ChessPosition nextPosition, ChessPosition myPosition) {
+        return (nextPiece != null && !isAlly(nextPiece) && nextPosition.getColumn() != myPosition.getColumn()) ||
+                (nextPiece == null && nextPosition.getColumn() == myPosition.getColumn());
     }
 
 }
