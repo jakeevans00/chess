@@ -79,7 +79,8 @@ public class GameStatusTests {
                 | | | | | | | | |
                 |B| | | | | | | |
                 | | | | | | | | |
-                | | | | | | | | |
+                | | 
+                | | | | | | |
                 """));
 
         Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.BLACK),

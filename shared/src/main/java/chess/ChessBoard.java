@@ -20,7 +20,7 @@ public class ChessBoard {
     public ChessBoard() {
     }
 
-    final String STANDARD_BOARD = """
+    public static String STANDARD_BOARD = """
                         |r|n|b|q|k|b|n|r|
                         |p|p|p|p|p|p|p|p|
                         | | | | | | | | |
@@ -54,6 +54,10 @@ public class ChessBoard {
         if (!chessPieces.containsKey(position)) {
             this.chessPieces.put(position, piece);
         }
+    }
+
+    public void removePiece(ChessPosition position) {
+        chessPieces.remove(position);
     }
 
     /**

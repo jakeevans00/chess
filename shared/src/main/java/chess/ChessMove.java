@@ -47,7 +47,7 @@ public class ChessMove {
      */
     public ChessPiece.PieceType getPromotionPiece() {
         return this.promotionPiece;
-    }
+     }
 
     public String toString() {
         return startPosition.toString() + " - " + endPosition.toString();
