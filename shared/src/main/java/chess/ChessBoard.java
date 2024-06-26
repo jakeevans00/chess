@@ -108,7 +108,6 @@ public class ChessBoard {
                     var type = CHAR_TO_TYPE_MAP.get(Character.toLowerCase(c));
                     var position = new ChessPosition(row, column);
                     var piece = new ChessPiece(color, type);
-//                    this.chessPieces.addPiece(position, piece);
                     chessPieces.put(position, piece);
                     column++;
                 }

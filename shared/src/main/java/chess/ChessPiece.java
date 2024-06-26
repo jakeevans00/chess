@@ -164,7 +164,7 @@ public class ChessPiece {
             ChessPosition nextPosition = new ChessPosition(myPosition.getRow() + direction[0], myPosition.getColumn() + direction[1]);
             ChessPiece nextPiece = board.getPiece(nextPosition);
 
-            if ((nextPiece != null && nextPiece.isAlly(this)) || !nextPosition.isValid()) {
+            if ((nextPiece != null && nextPiece.isAlly(this)) || nextPosition.isInvalid()) {
                 continue;
             }
             moves.add(new ChessMove(myPosition, nextPosition));
@@ -186,7 +186,7 @@ public class ChessPiece {
                 ChessPiece nextPiece = board.getPiece(nextPosition);
                 ChessMove possibleMove = new ChessMove(myPosition, nextPosition);
 
-                if ((nextPiece != null && nextPiece.isAlly(this)) || !nextPosition.isValid()) {
+                if ((nextPiece != null && nextPiece.isAlly(this)) || nextPosition.isInvalid()) {
                     break;
                 }
 
