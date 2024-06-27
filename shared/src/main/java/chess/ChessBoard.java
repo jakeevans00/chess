@@ -1,9 +1,6 @@
 package chess;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.Map.entry;
 
@@ -14,8 +11,9 @@ import static java.util.Map.entry;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    Map<ChessPosition, ChessPiece> chessPieces = new HashMap<>();
-    int BOARD_SIZE = 8;
+    private final Map<ChessPosition, ChessPiece> chessPieces = new HashMap<>();
+    private final int BOARD_SIZE = 8;
+    Stack<ChessMove> history = new Stack<>();
 
     public ChessBoard() {
     }
@@ -51,9 +49,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        if (!chessPieces.containsKey(position)) {
-            this.chessPieces.put(position, piece);
-        }
+        chessPieces.put(position, piece);
     }
 
     public void removePiece(ChessPosition position) {
@@ -69,6 +65,26 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return this.chessPieces.get(position);
+    }
+
+    public ChessPosition getPosition(ChessPiece piece) {
+        for (Map.Entry<ChessPosition, ChessPiece> entry : chessPieces.entrySet()) {
+            if (entry.getValue().equals(piece)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    public Map<ChessPosition, ChessPiece> getChessPieces() {
+        return chessPieces;
+    }
+
+    public void movePiece(ChessMove move, ChessGame.TeamColor teamTurn, ChessPiece.PieceType pieceType) {
+        removePiece(move.getStartPosition());
+        removePiece(move.getEndPosition());
+        addPiece(move.getEndPosition(), new ChessPiece(teamTurn, pieceType));
+        history.push(move);
     }
 
     public static boolean atStartingPosition(ChessPiece piece, ChessPosition position) {
