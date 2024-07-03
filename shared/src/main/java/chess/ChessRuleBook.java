@@ -41,7 +41,7 @@ public interface ChessRuleBook {
     }
 
     static boolean isInCheck(ChessBoard board, ChessGame.TeamColor teamColor){
-        ChessGame.TeamColor opponentColor = (ChessGame.TeamColor) ChessGame.getOppositeColor(teamColor);
+        ChessGame.TeamColor opponentColor = ChessGame.getOppositeColor(teamColor);
         Collection<ChessMove> opponentMoves = ChessRuleBook.teamMoves(board, opponentColor);
 
         for (ChessMove move : opponentMoves) {

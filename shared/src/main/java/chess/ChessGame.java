@@ -16,29 +16,6 @@ public class ChessGame {
     }
 
     /**
-     * @return Which team's turn it is
-     */
-    public TeamColor getTeamTurn() {
-        return state.getTurn();
-    }
-
-    /**
-     * @return Opponent's color
-     */
-    public TeamColor getOpponentColor() {
-        return getTeamTurn() == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
-    }
-
-    /**
-     * Set's which teams turn it is
-     *
-     * @param team the team whose turn it is
-     */
-    public void setTeamTurn(TeamColor team) {
-        state.setTurn(team);
-    }
-
-    /**
      * Enum identifying the 2 possible teams in a chess game
      */
     public enum TeamColor {
@@ -46,8 +23,17 @@ public class ChessGame {
         BLACK
     }
 
-    public static Enum<TeamColor> getOppositeColor (TeamColor color) {
+    public static TeamColor getOppositeColor (TeamColor color) {
         return TeamColor.BLACK == color ? TeamColor.WHITE : TeamColor.BLACK;
+    }
+
+
+    public TeamColor getTeamTurn() {
+        return state.getTurn();
+    }
+
+    public void setTeamTurn(TeamColor team) {
+        state.setTurn(team);
     }
 
     /**
@@ -66,10 +52,6 @@ public class ChessGame {
         return validMoves;
     }
 
-    public Collection<ChessMove> teamValidMoves(TeamColor teamColor) {
-        return new HashSet<>(ChessRuleBook.teamMoves(getBoard(), teamColor));
-    }
-
     /**
      * Makes a move in a chess game
      *
@@ -78,7 +60,7 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessBoard board = getBoard();
-        ChessPiece piece = board.getPiece(move.getStartPosition());
+        ChessPiece piece = getBoard().getPiece(move.getStartPosition());
         if (piece == null) { throw new InvalidMoveException("Invalid move"); }
 
         HashSet<ChessMove> possibleMoves = (HashSet<ChessMove>) piece.pieceMoves(board, move.getStartPosition());
@@ -89,7 +71,9 @@ public class ChessGame {
         if (isInCheck(teamTurn) && (pieceType != ChessPiece.PieceType.KING)) { throw new InvalidMoveException(); }
 
         board.movePiece(move, teamTurn, pieceType, true);
-        setTeamTurn(getOpponentColor());
+        TeamColor next = getOppositeColor(piece.getTeamColor());
+
+        setTeamTurn(next);
     }
 
     /**

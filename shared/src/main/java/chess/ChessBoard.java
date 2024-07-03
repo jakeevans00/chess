@@ -89,12 +89,13 @@ public class ChessBoard {
         if (history.isEmpty()) {
             throw new IllegalStateException("No moves to undo");
         }
-        Tuple<ChessMove, ChessPiece> change = history.pop();
-        ChessMove move = change.getFirst();
-        ChessPiece removedPiece = change.getSecond();
 
-        ChessPiece movedPiece = chessPieces.remove(move.getEndPosition());
-        if (change.getFirst().getPromotionPiece() != null) {
+        Tuple<ChessMove, ChessPiece> change = history.pop();
+        ChessMove move = change.first();
+        ChessPiece removedPiece = change.second();
+
+        ChessPiece movedPiece = removePiece(move.getEndPosition());
+        if (change.first().getPromotionPiece() != null) {
             movedPiece = new ChessPiece(movedPiece.getTeamColor(), ChessPiece.PieceType.PAWN);
         }
         addPiece(move.getStartPosition(), movedPiece);
