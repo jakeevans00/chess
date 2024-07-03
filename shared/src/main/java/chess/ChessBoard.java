@@ -2,8 +2,6 @@ package chess;
 
 import java.util.*;
 
-import static java.util.Map.entry;
-
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -12,10 +10,14 @@ import static java.util.Map.entry;
  */
 public class ChessBoard {
     private final Map<ChessPosition, ChessPiece> chessPieces = new HashMap<>();
-    private final int BOARD_SIZE = 8;
-    Stack<ChessMove> history = new Stack<>();
+    Stack<Tuple<ChessMove, ChessPiece>> history = new Stack<>();
 
     public ChessBoard() {
+    }
+
+    public ChessBoard(ChessBoard copy) {
+        this.chessPieces.putAll(copy.chessPieces);
+        this.history = copy.history;
     }
 
     public static String STANDARD_BOARD = """
@@ -37,11 +39,6 @@ public class ChessBoard {
             'k', ChessPiece.PieceType.KING,
             'b', ChessPiece.PieceType.BISHOP);
 
-    final static Map<ChessPiece, ChessPosition> STARTING_POSITIONS = Map.ofEntries(
-            entry(new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN), new ChessPosition(2,1)),
-            entry(new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN), new ChessPosition(7,1))
-    );
-
     /**
      * Adds a chess piece to the chessboard
      *
@@ -52,8 +49,8 @@ public class ChessBoard {
         chessPieces.put(position, piece);
     }
 
-    public void removePiece(ChessPosition position) {
-        chessPieces.remove(position);
+    public ChessPiece removePiece(ChessPosition position) {
+        return chessPieces.remove(position);
     }
 
     /**
@@ -80,16 +77,31 @@ public class ChessBoard {
         return chessPieces;
     }
 
-    public void movePiece(ChessMove move, ChessGame.TeamColor teamTurn, ChessPiece.PieceType pieceType) {
+    public void movePiece(ChessMove move, ChessGame.TeamColor teamTurn, ChessPiece.PieceType pieceType, boolean log) {
         removePiece(move.getStartPosition());
-        removePiece(move.getEndPosition());
-        addPiece(move.getEndPosition(), new ChessPiece(teamTurn, pieceType));
-        history.push(move);
+        ChessPiece capturedPiece = chessPieces.put(move.getEndPosition(), new ChessPiece(teamTurn, pieceType));
+        if (log) {
+            history.push(new Tuple<>(move, capturedPiece));
+        }
     }
 
-    public static boolean atStartingPosition(ChessPiece piece, ChessPosition position) {
-        ChessPosition expectedPosition = ChessBoard.STARTING_POSITIONS.get(piece);
-        return expectedPosition.getRow() == position.getRow();
+    public void undoMove() {
+        if (history.isEmpty()) {
+            throw new IllegalStateException("No moves to undo");
+        }
+        Tuple<ChessMove, ChessPiece> change = history.pop();
+        ChessMove move = change.getFirst();
+        ChessPiece removedPiece = change.getSecond();
+
+        ChessPiece movedPiece = chessPieces.remove(move.getEndPosition());
+        if (change.getFirst().getPromotionPiece() != null) {
+            movedPiece = new ChessPiece(movedPiece.getTeamColor(), ChessPiece.PieceType.PAWN);
+        }
+        addPiece(move.getStartPosition(), movedPiece);
+
+        if (removedPiece != null) {
+            addPiece(move.getEndPosition(), removedPiece);
+        }
     }
 
     /**
@@ -102,10 +114,6 @@ public class ChessBoard {
 
     public String toString() {
         return chessPieces.toString();
-    }
-
-    public static int getBoardSize(ChessBoard board) {
-        return board.BOARD_SIZE;
     }
 
     public void loadBoard(String boardText) {
@@ -147,6 +155,4 @@ public class ChessBoard {
     public int hashCode() {
         return Objects.hashCode(chessPieces);
     }
-
-
 }
