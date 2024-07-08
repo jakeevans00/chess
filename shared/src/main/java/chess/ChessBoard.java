@@ -80,6 +80,12 @@ public class ChessBoard {
     public void movePiece(ChessMove move, ChessGame.TeamColor teamTurn, ChessPiece.PieceType pieceType, boolean log) {
         removePiece(move.getStartPosition());
         ChessPiece capturedPiece = chessPieces.put(move.getEndPosition(), new ChessPiece(teamTurn, pieceType));
+
+        if (pieceType == ChessPiece.PieceType.PAWN && capturedPiece == null && move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
+            int mod = teamTurn == ChessGame.TeamColor.BLACK ? -1 : 1;
+            ChessPosition position = new ChessPosition(move.getEndPosition().getRow()-mod, move.getEndPosition().getColumn());
+            capturedPiece = removePiece(position);
+        }
         if (log) {
             history.push(new Tuple<>(move, capturedPiece));
         }

@@ -29,7 +29,9 @@ public class ChessMoveRules implements ChessRuleBook {
 
     public static HashSet<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
         int[][] directions = {{-1, 0}, {-1, 1},{0,1},{1,1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}};
-        return getSingleMoves(board, myPosition, directions);
+        HashSet<ChessMove> moves = getSingleMoves(board, myPosition, directions);
+        moves.addAll(getCastling(board, myPosition));
+        return moves;
     }
 
     public static HashSet<ChessMove> getQueenMoves(ChessBoard board, ChessPosition myPosition) {
@@ -73,6 +75,8 @@ public class ChessMoveRules implements ChessRuleBook {
                     moves.add(new ChessMove(myPosition, nextPosition));
                 }
             }
+
+            moves.addAll(getEnPassant(mod, board, myPosition));
         }
         return moves;
     }
@@ -154,5 +158,33 @@ public class ChessMoveRules implements ChessRuleBook {
 
         return (nextPiece != null && !nextPiece.isAlly(thisPiece) && nextPosition.getColumn() != myPosition.getColumn()) ||
                 (nextPiece == null && nextPosition.getColumn() == myPosition.getColumn());
+    }
+
+    public static HashSet<ChessMove> getCastling(ChessBoard board, ChessPosition myPosition) {
+
+        return new HashSet<>();
+    }
+
+    public static HashSet<ChessMove> getEnPassant(int mod, ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        ChessPiece thisPiece = board.getPiece(myPosition);
+
+        if (board.history.isEmpty()) {
+            return moves;
+        }
+
+        ChessMove prevMove = board.history.peek().first();
+        if (prevMove == null) {
+            return moves;
+        }
+
+        ChessPiece prevMovePiece = board.getPiece(prevMove.getEndPosition());
+        int prevMoveEndRow = prevMove.getEndPosition().getRow();
+        int distance = Math.abs(prevMove.getStartPosition().getRow() - prevMove.getEndPosition().getRow());
+        if (prevMovePiece != null && prevMovePiece.getPieceType() == ChessPiece.PieceType.PAWN && distance == 2 && myPosition.getRow() == prevMoveEndRow) {
+            moves.add(new ChessMove(myPosition, new ChessPosition(prevMove.getEndPosition().getRow() + mod, prevMove.getEndPosition().getColumn())));
+        }
+
+        return moves;
     }
 }
