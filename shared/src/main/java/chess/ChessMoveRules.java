@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class ChessMoveRules implements ChessRuleBook {
-    public static Collection<ChessMove> validMoves(ChessBoard board, ChessPosition myPosition) {
+    public static Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
         if (board.getPiece(myPosition) == null) {
