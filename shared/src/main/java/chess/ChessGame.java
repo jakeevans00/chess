@@ -61,16 +61,24 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessBoard board = getBoard();
         ChessPiece piece = getBoard().getPiece(move.getStartPosition());
-        if (piece == null) { throw new InvalidMoveException("Invalid move"); }
+        if (piece == null) { throw new InvalidMoveException(); }
 
         HashSet<ChessMove> possibleMoves = (HashSet<ChessMove>) piece.pieceMoves(board, move.getStartPosition());
         if (!possibleMoves.contains(move) || getTeamTurn() != piece.getTeamColor()) { throw new InvalidMoveException(); }
 
         ChessPiece.PieceType pieceType = (move.promotionPiece != null ? move.getPromotionPiece() : piece.getPieceType());
         ChessGame.TeamColor teamTurn = piece.getTeamColor();
+
         if (isInCheck(teamTurn) && (pieceType != ChessPiece.PieceType.KING)) { throw new InvalidMoveException(); }
 
-        board.movePiece(move, teamTurn, pieceType, true);
+        board.movePiece(move, true);
+
+        if (ChessRuleBook.isCastle(piece, move)) {
+            int row = move.getStartPosition().getRow();
+            ChessMove castle = ChessRuleBook.isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
+            board.movePiece(castle, true);
+        }
+
         TeamColor next = getOppositeColor(piece.getTeamColor());
 
         setTeamTurn(next);

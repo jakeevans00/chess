@@ -77,15 +77,27 @@ public class ChessBoard {
         return chessPieces;
     }
 
-    public void movePiece(ChessMove move, ChessGame.TeamColor teamTurn, ChessPiece.PieceType pieceType, boolean log) {
-        removePiece(move.getStartPosition());
-        ChessPiece capturedPiece = chessPieces.put(move.getEndPosition(), new ChessPiece(teamTurn, pieceType));
+    public void movePiece(ChessMove move, boolean log) {
+        ChessPiece movedPiece = removePiece(move.getStartPosition());
+        ChessGame.TeamColor teamColor = movedPiece.getTeamColor();
+        ChessPiece.PieceType pieceType = (move.promotionPiece != null ? move.getPromotionPiece() : movedPiece.getPieceType());
 
-        if (pieceType == ChessPiece.PieceType.PAWN && capturedPiece == null && move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
-            int mod = teamTurn == ChessGame.TeamColor.BLACK ? -1 : 1;
+        movedPiece.incrementMoveCount();
+
+        // Pawn Promotion
+        if (move.getPromotionPiece() != null) {
+            movedPiece = new ChessPiece(teamColor, pieceType, true, movedPiece.getMoveCount());
+         }
+
+        ChessPiece capturedPiece = chessPieces.put(move.getEndPosition(), movedPiece);
+
+        // En Passant
+        if (movedPiece.getPieceType() == ChessPiece.PieceType.PAWN && capturedPiece == null && move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
+            int mod = movedPiece.getTeamColor() == ChessGame.TeamColor.BLACK ? -1 : 1;
             ChessPosition position = new ChessPosition(move.getEndPosition().getRow()-mod, move.getEndPosition().getColumn());
             capturedPiece = removePiece(position);
         }
+
         if (log) {
             history.push(new Tuple<>(move, capturedPiece));
         }
@@ -101,13 +113,21 @@ public class ChessBoard {
         ChessPiece removedPiece = change.second();
 
         ChessPiece movedPiece = removePiece(move.getEndPosition());
+        movedPiece.decrementMoveCount();
+
         if (change.first().getPromotionPiece() != null) {
             movedPiece = new ChessPiece(movedPiece.getTeamColor(), ChessPiece.PieceType.PAWN);
+            movedPiece.setMoveCount(5);
         }
+
         addPiece(move.getStartPosition(), movedPiece);
 
         if (removedPiece != null) {
             addPiece(move.getEndPosition(), removedPiece);
+        }
+
+        if (ChessRuleBook.isCastle(movedPiece, move)) {
+            undoMove();
         }
     }
 

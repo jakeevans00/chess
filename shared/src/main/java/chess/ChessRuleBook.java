@@ -22,22 +22,43 @@ public interface ChessRuleBook {
         return moves;
     }
 
-    static void validateMoves(ChessBoard board, Collection<ChessMove> moves){
-        ChessBoard copy = new ChessBoard(board);
-
+    static void validateMoves(ChessBoard board, Collection<ChessMove> moves) {
         Iterator<ChessMove> iterator = moves.iterator();
         while (iterator.hasNext()) {
             ChessMove move = iterator.next();
-            ChessPiece piece = copy.getPiece(move.getStartPosition());
+            ChessPiece piece = board.getPiece(move.getStartPosition());
 
-            copy.movePiece(move, piece.getTeamColor(), piece.getPieceType(), true);
+            assert piece != null;
 
-            if (isInCheck(copy, piece.getTeamColor())) {
+            if (isCastle(piece, move)) {
+                int row = move.getStartPosition().getRow();
+                ChessMove castle = isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
+                board.movePiece(castle, true);
+                board.movePiece(move, true);
+
+                if (isInCheck(board, piece.getTeamColor())|| isInDanger(board, castle.getEndPosition())) {
+                    iterator.remove();
+                }
+                board.undoMove();
+                continue;
+            }
+
+            board.movePiece(move, true);
+
+            if (isInCheck(board, piece.getTeamColor())) {
                 iterator.remove();
             }
 
-            copy.undoMove();
+            board.undoMove();
         }
+    }
+
+    static boolean isCastleLeft(ChessMove move) {
+        return move.getEndPosition().getColumn() < move.getStartPosition().getColumn();
+    }
+
+    static boolean isCastle(ChessPiece piece, ChessMove move) {
+        return piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn()) == 2;
     }
 
     static boolean isInCheck(ChessBoard board, ChessGame.TeamColor teamColor){
@@ -50,6 +71,18 @@ public interface ChessRuleBook {
             }
         }
 
+        return false;
+    }
+
+    static boolean isInDanger(ChessBoard board, ChessPosition position){
+        ChessGame.TeamColor opponentColor = ChessGame.getOppositeColor(board.getPiece(position).getTeamColor());
+        Collection<ChessMove> opponentMoves = ChessRuleBook.teamMoves(board, opponentColor);
+
+        for (ChessMove move : opponentMoves) {
+            if (move.getEndPosition().equals(position)) {
+                return true;
+            }
+        }
         return false;
     }
 

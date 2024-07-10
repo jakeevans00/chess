@@ -11,11 +11,21 @@ import java.util.*;
 public class ChessPiece {
     private final PieceType pieceType;
     private final ChessGame.TeamColor teamColor;
+    private boolean hasMoved = false;
+    private int moveCount = 0;
+
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
+        this(pieceColor, type, false, 0);
+    }
+
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type, boolean hasMoved, int moveCount) {
         this.pieceType = type;
         this.teamColor = pieceColor;
+        this.hasMoved = hasMoved;
+        this.moveCount = moveCount;
     }
+
 
     public String toString() {
         return pieceType.toString() + " " + teamColor.toString();
@@ -67,6 +77,30 @@ public class ChessPiece {
         return ChessRuleBook.pieceMoves(board, myPosition);
     }
 
+    public int getMoveCount() {
+        return this.moveCount;
+    }
+
+    public boolean hasMoved() {
+        return this.hasMoved;
+    }
+
+    public void decrementMoveCount() {
+        --this.moveCount;
+        if (this.moveCount == 0) {
+            this.hasMoved = false;
+        }
+    }
+
+    public void incrementMoveCount() {
+        this.moveCount++;
+        this.hasMoved = true;
+    }
+
+    public void setMoveCount(int moveCount) {
+        this.moveCount = moveCount;
+    }
+
 
         @Override
     public boolean equals(Object o) {
@@ -80,5 +114,4 @@ public class ChessPiece {
     public int hashCode() {
         return Objects.hash(pieceType, teamColor);
     }
-
 }

@@ -161,13 +161,28 @@ public class ChessMoveRules implements ChessRuleBook {
     }
 
     public static HashSet<ChessMove> getCastling(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        int row = myPosition.getRow();
 
-        return new HashSet<>();
+        ChessPiece kingPiece = board.getPiece(new ChessPosition(row, myPosition.getColumn()));
+        ChessPiece leftRookPiece = board.getPiece(new ChessPosition(row, 1));
+        ChessPiece rightRookPiece = board.getPiece(new ChessPosition(row, 8));
+
+        if (kingPiece != null && !kingPiece.hasMoved()) {
+            if (leftRookPiece != null && !leftRookPiece.hasMoved() && getExtendedMoves(board, myPosition, new int[][]{{0,-1}}).size() == 3) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(row, 3)));
+            }
+            if (rightRookPiece != null && !rightRookPiece.hasMoved() && getExtendedMoves(board, myPosition, new int[][]{{0,1}}).size() == 2) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(row, 7)));
+            }
+        }
+        // check to see if results in piece being inCheck (inDanger)
+
+        return moves;
     }
 
     public static HashSet<ChessMove> getEnPassant(int mod, ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<>();
-        ChessPiece thisPiece = board.getPiece(myPosition);
 
         if (board.history.isEmpty()) {
             return moves;
