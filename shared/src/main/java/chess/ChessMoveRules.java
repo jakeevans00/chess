@@ -176,7 +176,6 @@ public class ChessMoveRules implements ChessRuleBook {
                 moves.add(new ChessMove(myPosition, new ChessPosition(row, 7)));
             }
         }
-        // check to see if results in piece being inCheck (inDanger)
 
         return moves;
     }

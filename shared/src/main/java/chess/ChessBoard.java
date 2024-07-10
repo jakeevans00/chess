@@ -77,7 +77,7 @@ public class ChessBoard {
         return chessPieces;
     }
 
-    public void movePiece(ChessMove move, boolean log) {
+    public void movePiece(ChessMove move) {
         ChessPiece movedPiece = removePiece(move.getStartPosition());
         ChessGame.TeamColor teamColor = movedPiece.getTeamColor();
         ChessPiece.PieceType pieceType = (move.promotionPiece != null ? move.getPromotionPiece() : movedPiece.getPieceType());
@@ -98,15 +98,13 @@ public class ChessBoard {
             capturedPiece = removePiece(position);
         }
 
-        if (log) {
-            history.push(new Tuple<>(move, capturedPiece));
-        }
+        history.push(new Tuple<>(move, capturedPiece));
     }
 
     public void castle(ChessMove move) {
         int row = move.getStartPosition().getRow();
         ChessMove castle = ChessRuleBook.isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
-        movePiece(castle, true);
+        movePiece(castle);
     }
 
     public void undoMove() {
@@ -132,7 +130,7 @@ public class ChessBoard {
             addPiece(move.getEndPosition(), removedPiece);
         }
 
-        if (ChessRuleBook.isCastle(movedPiece, move)) {
+        if (move.isCastle(movedPiece.getPieceType())) {
             undoMove();
         }
     }

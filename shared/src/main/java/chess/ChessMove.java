@@ -39,6 +39,11 @@ public class ChessMove {
         return this.endPosition;
     }
 
+
+    public boolean isCastle(ChessPiece.PieceType pieceType) {
+        return pieceType == ChessPiece.PieceType.KING && Math.abs(getEndPosition().getColumn() - getStartPosition().getColumn()) == 2;
+    }
+
     /**
      * Gets the type of piece to promote a pawn to if pawn promotion is part of this
      * chess move

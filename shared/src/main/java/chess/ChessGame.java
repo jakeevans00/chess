@@ -66,9 +66,9 @@ public class ChessGame {
         ChessBoard board = getBoard();
         ChessPiece piece = getBoard().getPiece(move.getStartPosition());
 
-        board.movePiece(move, true);
+        board.movePiece(move);
 
-        if (ChessRuleBook.isCastle(piece, move)) {
+        if (move.isCastle(piece.getPieceType())) {
            board.castle(move);
         }
 

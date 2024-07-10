@@ -28,30 +28,42 @@ public interface ChessRuleBook {
             ChessMove move = iterator.next();
             ChessPiece piece = board.getPiece(move.getStartPosition());
 
-            assert piece != null;
-
-            if (isCastle(piece, move)) {
-                int row = move.getStartPosition().getRow();
-                ChessMove castle = isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
-                board.movePiece(castle, true);
-                board.movePiece(move, true);
-
-                if (isInCheck(board, piece.getTeamColor())|| isInDanger(board, castle.getEndPosition())) {
-                    iterator.remove();
-                }
-                board.undoMove();
+            if (piece == null) {
                 continue;
             }
 
-            board.movePiece(move, true);
-
-            if (isInCheck(board, piece.getTeamColor())) {
-                iterator.remove();
+            if (move.isCastle(piece.getPieceType())) {
+                handleCastleMove(board, iterator, move, piece);
+            } else {
+                handleRegularMove(board, iterator, move, piece);
             }
-
-            board.undoMove();
         }
     }
+
+    private static void handleCastleMove(ChessBoard board, Iterator<ChessMove> iterator, ChessMove move, ChessPiece piece) {
+        int row = move.getStartPosition().getRow();
+        ChessMove castleMove = isCastleLeft(move)
+                ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4))
+                : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
+
+        board.movePiece(castleMove);
+        board.movePiece(move);
+
+        if (isInCheck(board, piece.getTeamColor()) || isInDanger(board, castleMove.getEndPosition())) {
+            iterator.remove();
+        }
+        board.undoMove();
+    }
+
+    private static void handleRegularMove(ChessBoard board, Iterator<ChessMove> iterator, ChessMove move, ChessPiece piece) {
+        board.movePiece(move);
+
+        if (isInCheck(board, piece.getTeamColor())) {
+            iterator.remove();
+        }
+        board.undoMove();
+    }
+
 
     static boolean isCastleLeft(ChessMove move) {
         return move.getEndPosition().getColumn() < move.getStartPosition().getColumn();
