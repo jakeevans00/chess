@@ -103,6 +103,12 @@ public class ChessBoard {
         }
     }
 
+    public void castle(ChessMove move) {
+        int row = move.getStartPosition().getRow();
+        ChessMove castle = ChessRuleBook.isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
+        movePiece(castle, true);
+    }
+
     public void undoMove() {
         if (history.isEmpty()) {
             throw new IllegalStateException("No moves to undo");

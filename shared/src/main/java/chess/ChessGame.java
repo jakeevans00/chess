@@ -59,29 +59,32 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if (!isLegalMove(move)) {
+            throw new InvalidMoveException();
+        }
+
         ChessBoard board = getBoard();
         ChessPiece piece = getBoard().getPiece(move.getStartPosition());
-        if (piece == null) { throw new InvalidMoveException(); }
-
-        HashSet<ChessMove> possibleMoves = (HashSet<ChessMove>) piece.pieceMoves(board, move.getStartPosition());
-        if (!possibleMoves.contains(move) || getTeamTurn() != piece.getTeamColor()) { throw new InvalidMoveException(); }
-
-        ChessPiece.PieceType pieceType = (move.promotionPiece != null ? move.getPromotionPiece() : piece.getPieceType());
-        ChessGame.TeamColor teamTurn = piece.getTeamColor();
-
-        if (isInCheck(teamTurn) && (pieceType != ChessPiece.PieceType.KING)) { throw new InvalidMoveException(); }
 
         board.movePiece(move, true);
 
         if (ChessRuleBook.isCastle(piece, move)) {
-            int row = move.getStartPosition().getRow();
-            ChessMove castle = ChessRuleBook.isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
-            board.movePiece(castle, true);
+           board.castle(move);
         }
 
         TeamColor next = getOppositeColor(piece.getTeamColor());
-
         setTeamTurn(next);
+    }
+
+    public boolean isLegalMove(ChessMove move) {
+        ChessBoard board = getBoard();
+        ChessPiece piece = getBoard().getPiece(move.getStartPosition());
+
+        if (piece == null) { return false; }
+
+        HashSet<ChessMove> possibleMoves = (HashSet<ChessMove>) piece.pieceMoves(board, move.getStartPosition());
+        ChessRuleBook.validateMoves(getBoard(), possibleMoves);
+        return possibleMoves.contains(move) && getTeamTurn() == piece.getTeamColor();
     }
 
     /**
