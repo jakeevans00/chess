@@ -3,20 +3,17 @@ package dataaccess;
 import datastore.DataStore;
 import model.UserData;
 
-public class MemoryUserDAO implements UserDAO {
-    private final DataStore dataStore;
+import java.util.HashMap;
 
-    public MemoryUserDAO() {
-        dataStore = new DataStore();
-    }
+public class MemoryUserDAO implements UserDAO {
 
     @Override
     public void createUser(UserData user) {
-        dataStore.addUser(user);
+        DataStore.getInstance().addUser(user);
     }
 
     @Override
     public UserData getUser(String username) {
-        return dataStore.getUser(username);
+        return DataStore.getInstance().getUser(username);
     }
 }

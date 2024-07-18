@@ -1,21 +1,37 @@
 package datastore;
 
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 
-import javax.xml.crypto.Data;
 import java.util.*;
 
 public class DataStore {
+    private static DataStore instance;
     private HashMap<String, UserData> users;
-    private List<AuthData> authorizations;
+    private HashMap<String, AuthData> auths;
+    private HashMap<Integer, GameData> games;
 
-    public DataStore() {
+    private DataStore() {
         UserData test = new UserData("username","password", "email");
         this.users = new HashMap<>();
-        this.users.put(test.username(),test);
+        this.auths = new HashMap<>();
+        this.games = new HashMap<>();
 
-        this.authorizations = new ArrayList<>();
+        this.users.put(test.username(),test);
+    }
+
+    public static DataStore getInstance() {
+        if (instance != null) {
+            return instance;
+        }
+
+        synchronized (DataStore.class) {
+            if (instance == null) {
+                instance = new DataStore();
+            }
+        }
+        return instance;
     }
 
     public UserData getUser(String username) {
