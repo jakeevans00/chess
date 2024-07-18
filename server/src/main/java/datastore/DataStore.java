@@ -41,4 +41,19 @@ public class DataStore {
     public void addUser(UserData user) {
         this.users.put(user.username(), user);
     }
+
+    public boolean getAuth(String token) {
+        return !this.auths.get(token).username().isEmpty();
+    }
+
+    public AuthData addAuth(AuthData auth) {
+        this.auths.put(auth.username(), auth);
+        return auth;
+    }
+
+    public void clearAll() {
+        users.clear();
+        auths.clear();
+        games.clear();
+    }
 }
