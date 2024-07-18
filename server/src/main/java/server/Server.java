@@ -1,10 +1,9 @@
 package server;
 
-import handler.Handler;
+import handler.LoginHandler;
 import spark.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.io.IOException;
 
 public class Server {
 
@@ -31,8 +30,6 @@ public class Server {
             return new String(Files.readAllBytes(Paths.get("src/main/resources/public/index.html")));
         } ));
 
-        Spark.post("/session", ((request, response) -> {
-            return new Handler().handleLogin(request, response);
-        }));
+        Spark.post("/session", (req, res) -> (new LoginHandler().handle(req,res)));
     }
 }
