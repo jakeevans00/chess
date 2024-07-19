@@ -1,5 +1,6 @@
 package handler;
 
+import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
 import response.LoginResponse;
@@ -14,12 +15,17 @@ public class LoginHandler implements Route {
         UserData userData = Serializer.serialize(request, UserData.class);
 
         UserService userService = new UserService();
-        LoginResponse loginResponse = userService.login(userData);
+        try {
+            LoginResponse loginResponse = userService.login(userData);
+            if (loginResponse.getToken() == null) {
+                response.status(401);
+            }
 
-        if (loginResponse.getToken() == null) {
-            response.status(401);
+            return Serializer.deserialize(loginResponse);
+
+        } catch (DataAccessException e) {
+            response.status(500);
+            return Serializer.deserialize(e.getMessage());
         }
-
-        return Serializer.deserialize(loginResponse);
     }
 }

@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryUserDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import datastore.DataStore;
 import model.AuthData;
 import model.UserData;
@@ -20,21 +17,22 @@ public class UserService {
     public RegisterResponse register(UserData user) {throw new RuntimeException(); }
 
 
-    public LoginResponse login(UserData user) {
+    public LoginResponse login(UserData user) throws DataAccessException {
         LoginResponse response = new LoginResponse();
 
-        if (userDAO.getUser(user.username()) == null) {
-           response.setMessage("User not found");
-           return response;
-        }
+        try {
+            UserData result = userDAO.getUser(user.username());
 
-        if (!userDAO.getUser(user.username()).password().equals(user.password())) {
-            response.setMessage("Wrong password, try again");
-            return response;
-        }
+            if (result == null || !user.password().equals(result.password())) {
+                response.setMessage("Unauthorized");
+                return response;
+            }
 
-        AuthData auth = authDAO.createAuth(new AuthData(UUID.randomUUID().toString(), user.username()));
-        return new LoginResponse(auth.authToken(), auth.username());
+            AuthData auth = authDAO.createAuth(new AuthData(UUID.randomUUID().toString(), user.username()));
+            return new LoginResponse(auth.authToken(), auth.username());
+        } catch (Exception e) {
+            throw new DataAccessException("Error: Unable to access data");
+        }
     }
 
     public void logout(AuthData authData) {}

@@ -34,7 +34,8 @@ public class DataStore {
         return instance;
     }
 
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws Exception {
+        // throw new Exception();
         return this.users.get(username);
     }
 
