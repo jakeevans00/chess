@@ -1,31 +1,38 @@
 package handler;
 
 import dataaccess.DataAccessException;
-import model.AuthData;
 import model.UserData;
 import response.LoginResponse;
 import service.UserService;
+import service.exceptions.MalformedRegistrationException;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 
 public class LoginHandler implements Route {
-    public String handle(Request request, Response response) {
-        UserData userData = Serializer.serialize(request, UserData.class);
+    private final UserService userService = new UserService();
 
-        UserService userService = new UserService();
+    public String handle(Request request, Response response) {
+        UserData userData = Serializer.deserialize(request, UserData.class);
+
         try {
             LoginResponse loginResponse = userService.login(userData);
-            if (loginResponse.getToken() == null) {
+
+            if (loginResponse.getMessage() != null) {
                 response.status(401);
             }
 
-            return Serializer.deserialize(loginResponse);
-
+            return Serializer.serialize(loginResponse);
         } catch (DataAccessException e) {
-            response.status(500);
-            return Serializer.deserialize(e.getMessage());
+            return handleDataAccessException(response, e);
         }
+    }
+
+    private String handleDataAccessException(Response response, DataAccessException e) {
+        response.status(500);
+        LoginResponse failedResponse = new LoginResponse();
+        failedResponse.setMessage(e.getMessage());
+        return Serializer.serialize(failedResponse);
     }
 }

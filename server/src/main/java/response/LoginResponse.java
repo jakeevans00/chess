@@ -1,22 +1,31 @@
 package response;
 
 public class LoginResponse extends Response {
-    private String token;
     private String username;
+    private String authToken;
 
     public LoginResponse() {
     }
 
-    public LoginResponse(String token, String username) {
-        this.token = token;
-        this.username = username;
+    public LoginResponse(String message) {
+        super(message);
     }
 
-    public String getToken() {
-        return token;
+    public LoginResponse(String username, String token) {
+        this.username = username;
+        this.authToken = token;
+    }
+
+    public String getAuthToken() {
+        return authToken;
     }
 
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public String toString() {
+        return this.username + " " + this.authToken;
     }
 }

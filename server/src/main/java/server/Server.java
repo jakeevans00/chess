@@ -12,7 +12,6 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
-        // Register your endpoints and handle exceptions here.
         createRoutes();
 
         Spark.awaitInitialization();
