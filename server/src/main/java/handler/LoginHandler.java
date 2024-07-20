@@ -18,21 +18,9 @@ public class LoginHandler implements Route {
 
         try {
             LoginResponse loginResponse = userService.login(userData);
-
-            if (loginResponse.getMessage() != null) {
-                response.status(401);
-            }
-
             return Serializer.serialize(loginResponse);
-        } catch (DataAccessException e) {
-            return handleDataAccessException(response, e);
+        } catch (Exception e) {
+            return ErrorHandler.handleException(e, response);
         }
-    }
-
-    private String handleDataAccessException(Response response, DataAccessException e) {
-        response.status(500);
-        LoginResponse failedResponse = new LoginResponse();
-        failedResponse.setMessage(e.getMessage());
-        return Serializer.serialize(failedResponse);
     }
 }

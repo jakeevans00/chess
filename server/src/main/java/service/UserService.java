@@ -5,6 +5,7 @@ import model.AuthData;
 import model.UserData;
 import response.LoginResponse;
 import response.RegisterResponse;
+import service.exceptions.InvalidCredentialsException;
 import service.exceptions.MalformedRegistrationException;
 import service.exceptions.ExistingUserException;
 
@@ -18,16 +19,16 @@ public class UserService {
         UserData result = userDAO.getUser(user.username());
 
         if (result != null) {
-            throw new ExistingUserException("Already taken");
+            throw new ExistingUserException("Error: Username already exists");
         }
 
         if (isInvalidString(user.username()) || isInvalidString(user.password())) {
-            throw new MalformedRegistrationException("Bad Request");
+            throw new MalformedRegistrationException("Error: Invalid format for username or password");
         }
 
         try {
             userDAO.createUser(user);
-            AuthData auth = authDAO.createAuth(new AuthData(UUID.randomUUID().toString(), user.username()));
+            AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
             return new RegisterResponse(auth.username(), auth.authToken());
         } catch (Exception e) {
             throw new DataAccessException("Error: Unable to reach database");
@@ -36,13 +37,14 @@ public class UserService {
 
 
 
-public LoginResponse login(UserData user) throws DataAccessException {
-    try {
-        UserData result = userDAO.getUser(user.username());
-        if (result == null || !user.password().equals(result.password())) {
-            return new LoginResponse("Error: Invalid credentials");
-        }
+public LoginResponse login(UserData user) throws Exception {
+    UserData result = userDAO.getUser(user.username());
 
+    if (result == null || !user.password().equals(result.password())) {
+        throw new InvalidCredentialsException("Error: unauthorized");
+    }
+
+    try {
         AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
         return new LoginResponse(auth.username(), auth.authToken());
 

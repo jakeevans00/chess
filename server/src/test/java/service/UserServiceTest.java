@@ -6,13 +6,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import response.LoginResponse;
 import response.RegisterResponse;
+import service.exceptions.InvalidCredentialsException;
+import service.exceptions.MalformedRegistrationException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
 
     @Test
-    void loginSuccess() throws DataAccessException {
+    void loginSuccess() throws Exception {
         UserService userService = new UserService();
         UserData user = new UserData("username", "password", "email");
         LoginResponse response = new LoginResponse("username","token");
@@ -23,31 +25,45 @@ class UserServiceTest {
     }
 
     @Test
-    void loginInvalidUsername() throws DataAccessException {
+    void loginInvalidUsername() {
         UserService userService = new UserService();
         UserData user = new UserData("name", "password", "mail");
-        LoginResponse response = userService.login(user);
 
-        Assertions.assertNotNull(response.getMessage());
-        Assertions.assertNull(response.getAuthToken());
-        Assertions.assertNull(response.getUsername());
+        Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
     }
 
     @Test
-    void loginInvalidPassword() throws DataAccessException {
+    void loginInvalidPassword() {
         UserService userService = new UserService();
         UserData user = new UserData("username", "wrongPassword", "email");
-        LoginResponse response = userService.login(user);
 
-        Assertions.assertNotNull(response.getMessage());
-        Assertions.assertNull(response.getAuthToken());
-        Assertions.assertNull(response.getUsername());
+        Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
     }
 
     @Test
     void registerSuccess() throws Exception {
         UserService userService = new UserService();
-        UserData user = new UserData("username", "password", "email");
-        RegisterResponse response = userService.register(user);
+        UserData user = new UserData("newUsername", "password", "email");
+        RegisterResponse response = new RegisterResponse("newUsername", "token");
+
+        Assertions.assertEquals(response.getUsername(), userService.register(user).getUsername());
+        Assertions.assertNotNull(response.getAuthToken());
+        Assertions.assertNull(response.getMessage());
+    }
+
+    @Test
+    void registerInvalidUsername() {
+        UserService userService = new UserService();
+        UserData user = new UserData("", "password", "email");
+
+        Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void registerInvalidPassword() {
+        UserService userService = new UserService();
+        UserData user = new UserData("newUsername", "pass with spaces", "email");
+
+        Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
     }
 }
