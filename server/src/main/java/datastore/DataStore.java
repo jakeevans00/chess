@@ -8,9 +8,9 @@ import java.util.*;
 
 public class DataStore {
     private static DataStore instance;
-    private HashMap<String, UserData> users;
-    private HashMap<String, AuthData> auths;
-    private HashMap<Integer, GameData> games;
+    private final HashMap<String, UserData> users;
+    private final HashMap<String, AuthData> auths;
+    private final HashMap<Integer, GameData> games;
 
     private DataStore() {
         UserData test = new UserData("username","password", "email");
@@ -42,13 +42,17 @@ public class DataStore {
         this.users.put(user.username(), user);
     }
 
-    public boolean getAuth(String token) {
-        return !this.auths.get(token).username().isEmpty();
+    public AuthData getAuth(String token) {
+        return auths.get(token);
     }
 
     public AuthData addAuth(AuthData auth) {
-        this.auths.put(auth.username(), auth);
+        this.auths.put(auth.authToken(), auth);
         return auth;
+    }
+
+    public void deleteAuth(String authToken) {
+        this.auths.remove(authToken);
     }
 
     public void clearAll() {

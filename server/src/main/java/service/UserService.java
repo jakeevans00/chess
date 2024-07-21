@@ -4,6 +4,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import response.LoginResponse;
+import response.LogoutResponse;
 import response.RegisterResponse;
 import service.exceptions.InvalidCredentialsException;
 import service.exceptions.MalformedRegistrationException;
@@ -37,27 +38,35 @@ public class UserService {
 
 
 
-public LoginResponse login(UserData user) throws Exception {
-    UserData result = userDAO.getUser(user.username());
+    public LoginResponse login(UserData user) throws Exception {
+        UserData result = userDAO.getUser(user.username());
 
-    if (result == null || !user.password().equals(result.password())) {
-        throw new InvalidCredentialsException("Error: unauthorized");
-    }
+        if (result == null || !user.password().equals(result.password())) {
+            throw new InvalidCredentialsException("Error: unauthorized");
+        }
 
-    try {
-        AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
-        return new LoginResponse(auth.username(), auth.authToken());
-
-    } catch (Exception e) {
-        throw new DataAccessException("Error: Unable to access data");
-    }
-}
-
-
-
-    public void logout(AuthData authData) throws DataAccessException {
         try {
-            authDAO.deleteAuth(authData);
+            AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
+            return new LoginResponse(auth.username(), auth.authToken());
+
+        } catch (Exception e) {
+            throw new DataAccessException("Error: Unable to access data");
+        }
+    }
+
+
+
+    public LogoutResponse logout(String authToken) throws Exception {
+        AuthData auth = authDAO.getAuth(authToken);
+
+        if (auth == null) {
+            System.out.println("Auth was null");
+            throw new InvalidCredentialsException("Error: Unauthorized");
+        }
+
+        try {
+            authDAO.deleteAuth(auth);
+            return new LogoutResponse();
         } catch (Exception e) {
             throw new DataAccessException("Error: Database Error");
         }

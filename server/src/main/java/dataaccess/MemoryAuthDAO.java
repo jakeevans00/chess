@@ -11,12 +11,12 @@ public class MemoryAuthDAO implements AuthDAO {
     }
 
     @Override
-    public AuthData getAuth(UserData user) {
-        return null;
+    public AuthData getAuth(String auth) {
+        return DataStore.getInstance().getAuth(auth);
     }
 
     @Override
     public void deleteAuth(AuthData authData) {
-
+        DataStore.getInstance().deleteAuth(authData.authToken());
     }
 }

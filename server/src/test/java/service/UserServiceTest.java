@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.DataAccessException;
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,10 +13,16 @@ import service.exceptions.MalformedRegistrationException;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
+    private final UserService userService = new UserService();
+
+
+    @Test
+    void clear() {
+
+    }
 
     @Test
     void loginSuccess() throws Exception {
-        UserService userService = new UserService();
         UserData user = new UserData("username", "password", "email");
         LoginResponse response = new LoginResponse("username","token");
 
@@ -26,7 +33,6 @@ class UserServiceTest {
 
     @Test
     void loginInvalidUsername() {
-        UserService userService = new UserService();
         UserData user = new UserData("name", "password", "mail");
 
         Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
@@ -34,7 +40,6 @@ class UserServiceTest {
 
     @Test
     void loginInvalidPassword() {
-        UserService userService = new UserService();
         UserData user = new UserData("username", "wrongPassword", "email");
 
         Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
@@ -42,7 +47,6 @@ class UserServiceTest {
 
     @Test
     void registerSuccess() throws Exception {
-        UserService userService = new UserService();
         UserData user = new UserData("newUsername", "password", "email");
         RegisterResponse response = new RegisterResponse("newUsername", "token");
 
@@ -53,17 +57,26 @@ class UserServiceTest {
 
     @Test
     void registerInvalidUsername() {
-        UserService userService = new UserService();
         UserData user = new UserData("", "password", "email");
-
         Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
     }
 
     @Test
     void registerInvalidPassword() {
-        UserService userService = new UserService();
-        UserData user = new UserData("newUsername", "pass with spaces", "email");
-
+        UserData user = new UserData("badPasswordUser", "pass with spaces", "email");
         Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void logoutSuccess() throws Exception {
+        UserData user = new UserData("username", "password", "email");
+        String authToken = userService.login(user).getAuthToken();
+        Assertions.assertDoesNotThrow(() -> userService.logout(authToken));
+    }
+
+    @Test
+    void logoutInvalidAuthToken() {
+        String invalidAuthToken = "invalidAuthToken";
+        Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.logout(invalidAuthToken));
     }
 }

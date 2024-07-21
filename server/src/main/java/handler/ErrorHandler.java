@@ -10,9 +10,9 @@ public class ErrorHandler {
         response.Response errorResponse = new response.Response();
 
         switch (e) {
-            case MalformedRegistrationException malformedRegistrationException -> response.status(400);
-            case ExistingUserException existingUserException -> response.status(403);
-            case InvalidCredentialsException invalidCredentialsException -> response.status(401);
+            case MalformedRegistrationException _ -> response.status(400);
+            case ExistingUserException _ -> response.status(403);
+            case InvalidCredentialsException _ -> response.status(401);
             case null, default -> response.status(500);
         }
 
