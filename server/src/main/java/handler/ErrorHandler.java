@@ -11,9 +11,10 @@ public class ErrorHandler {
         response.Response errorResponse = new response.Response();
 
         switch (e) {
-            case MalformedRequestException _ -> response.status(400);
-            case InvalidCredentialsException _ -> response.status(401);
-            case ExistingUserException _, ForbiddenActionException _ -> response.status(403);
+            case MalformedRequestException malformedRequestException -> response.status(400);
+            case InvalidCredentialsException invalidCredentialsException -> response.status(401);
+            case ForbiddenActionException forbiddenActionException -> response.status(403);
+            case ExistingUserException existingUserException -> response.status(403);
             case null, default -> response.status(500);
         }
 
