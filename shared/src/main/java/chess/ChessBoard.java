@@ -31,7 +31,7 @@ public class ChessBoard {
                         |R|N|B|Q|K|B|N|R|
                         """;
 
-    final static Map<Character, ChessPiece.PieceType> CHAR_TO_TYPE_MAP = Map.of(
+    final static Map<Character, ChessPiece.PieceType> CHAR_TYPE_MAP = Map.of(
             'p', ChessPiece.PieceType.PAWN,
             'n', ChessPiece.PieceType.KNIGHT,
             'r', ChessPiece.PieceType.ROOK,
@@ -150,28 +150,30 @@ public class ChessBoard {
         return chessPieces.toString();
     }
 
-    public void loadBoard(String boardText) {
-        chessPieces.clear();
+    private void createPiece(char c, int row, int column) {
+        ChessGame.TeamColor color = Character.isLowerCase(c) ? ChessGame.TeamColor.BLACK
+                : ChessGame.TeamColor.WHITE;
+        var type = CHAR_TYPE_MAP.get(Character.toLowerCase(c));
+        ChessPosition position = new ChessPosition(row, column);
+        ChessPiece piece = new ChessPiece(color, type);
+        chessPieces.put(position, piece);
+    }
 
+    public void loadBoard(String boardText) {
         int row = 8;
-        int column = 1;
-        for (var c : boardText.toCharArray()) {
+        int col = 1;
+        for (char c : boardText.toCharArray()) {
             switch (c) {
                 case '\n' -> {
-                    column = 1;
+                    col = 1;
                     row--;
                 }
-                case ' ' -> column++;
                 case '|' -> {
                 }
+                case ' ' -> col++;
                 default -> {
-                    ChessGame.TeamColor color = Character.isLowerCase(c) ? ChessGame.TeamColor.BLACK
-                            : ChessGame.TeamColor.WHITE;
-                    var type = CHAR_TO_TYPE_MAP.get(Character.toLowerCase(c));
-                    var position = new ChessPosition(row, column);
-                    var piece = new ChessPiece(color, type);
-                    chessPieces.put(position, piece);
-                    column++;
+                    createPiece(c, row, col);
+                    col++;
                 }
             }
         }
