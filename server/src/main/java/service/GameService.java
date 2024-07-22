@@ -11,61 +11,38 @@ import response.JoinGameResponse;
 import response.ListGamesResponse;
 import service.exceptions.ExistingUserException;
 import service.exceptions.ForbiddenActionException;
-import service.exceptions.MalformedRegistrationException;
+import service.exceptions.MalformedRequestException;
 
 import java.util.Objects;
 
 public class GameService {
-    GameDAO gameDAO = new MemoryGameDAO();
-    AuthDAO authDAO = new MemoryAuthDAO();
+    private final GameDAO gameDAO;
+    private final AuthDAO authDAO;
+
+    public GameService() {
+        this.gameDAO = new MemoryGameDAO();
+        this.authDAO = new MemoryAuthDAO();
+    }
 
     public CreateGameResponse createGame(GameData gameDataRequest) throws Exception {
-        if (gameDataRequest == null || HelperService.isInvalidString(gameDataRequest.gameName())) {
-            throw new MalformedRegistrationException("Error: Invalid game name");
-        }
+        validateCreateGameRequest(gameDataRequest);
 
-        if (DataStore.getInstance().getGame(gameDataRequest.gameName()) != null) {
-            throw new MalformedRegistrationException("Error: Game already exists");
-        }
-
-        try {
-            ChessGame newGame = new ChessGame();
-            GameData game = new GameData(DataStore.getInstance().getNextCount(), null, null, gameDataRequest.gameName(),newGame);
+        return ServiceUtils.execute(() -> {
+            GameData game = new GameData(DataStore.getInstance().getNextCount(), null, null, gameDataRequest.gameName(), new ChessGame());
             gameDAO.addGame(game);
             return new CreateGameResponse(game.gameID());
-        } catch (Exception e) {
-            throw new DataAccessException("Error: Unable to reach database");
-        }
+        });
     }
 
     public JoinGameResponse joinGame(JoinGameRequest gameDataRequest, String authToken) throws Exception {
         GameData game = DataStore.getInstance().getGame(gameDataRequest.getGameId());
-        AuthData auth = authDAO.getAuth(authToken);
-        gameDataRequest.setUsername(auth.username());
+        validateJoinGameRequest(gameDataRequest, game, authToken);
 
-        if (game == null) {
-            throw new MalformedRegistrationException("Error: Game does not exist");
-        }
-
-        if (gameDataRequest.getPlayerColor() == null) {
-            throw new MalformedRegistrationException("Error: Invalid player color");
-        }
-
-        if (game.whiteUsername() != null && game.blackUsername() != null) {
-            throw new ForbiddenActionException("Error: Game already has 2 players");
-        }
-
-        if (!colorIsAvailable(gameDataRequest.getPlayerColor(), game)) {
-            throw new ExistingUserException("Error: Cannot play as " + gameDataRequest.getPlayerColor());
-        }
-
-        try {
+        return ServiceUtils.execute(() -> {
             GameData update = addUserToGame(game, gameDataRequest);
             gameDAO.updateGame(update);
             return new JoinGameResponse();
-        } catch (Exception e) {
-            throw new DataAccessException("Error: Unable to reach database");
-        }
+        });
     }
 
     public ListGamesResponse listGames() {
@@ -76,16 +53,20 @@ public class GameService {
         String whiteUsername = game.whiteUsername();
         String blackUsername = game.blackUsername();
 
-        if (user.getPlayerColor().equals(ChessGame.TeamColor.WHITE)) {
-            whiteUsername = user.getUsername();
-        } else if (user.getPlayerColor().equals(ChessGame.TeamColor.BLACK)) {
-            blackUsername = user.getUsername();
-        } else {
-            if (blackUsername == null) {
-                blackUsername = user.getUsername();
-            } else {
+        switch (user.getPlayerColor()) {
+            case WHITE:
                 whiteUsername = user.getUsername();
-            }
+                break;
+            case BLACK:
+                blackUsername = user.getUsername();
+                break;
+            default:
+                if (blackUsername == null) {
+                    blackUsername = user.getUsername();
+                } else {
+                    whiteUsername = user.getUsername();
+                }
+                break;
         }
 
         return new GameData(game.gameID(), whiteUsername, blackUsername, game.gameName(), game.game());
@@ -95,5 +76,36 @@ public class GameService {
         if (Objects.equals(playerColor, ChessGame.TeamColor.WHITE) && game.whiteUsername() != null) {
             return false;
         } else return !Objects.equals(playerColor, ChessGame.TeamColor.BLACK) || game.blackUsername() == null;
+    }
+
+    private void validateCreateGameRequest(GameData gameDataRequest) throws MalformedRequestException {
+        if (gameDataRequest == null || ServiceUtils.isInvalidString(gameDataRequest.gameName())) {
+            throw new MalformedRequestException("Error: Invalid game object or name");
+        }
+
+        if (DataStore.getInstance().getGame(gameDataRequest.gameName()) != null) {
+            throw new MalformedRequestException("Error: Game already exists");
+        }
+    }
+
+    private void validateJoinGameRequest(JoinGameRequest joinGameRequest, GameData game, String authToken) throws Exception {
+        if (game == null) {
+            throw new MalformedRequestException("Error: Game does not exist");
+        }
+
+        AuthData auth = authDAO.getAuth(authToken);
+        joinGameRequest.setUsername(auth.username());
+
+        if (joinGameRequest.getPlayerColor() == null) {
+            throw new MalformedRequestException("Error: Invalid player color");
+        }
+
+        if (game.whiteUsername() != null && game.blackUsername() != null) {
+            throw new ForbiddenActionException("Error: Game already has 2 players");
+        }
+
+        if (!colorIsAvailable(joinGameRequest.getPlayerColor(), game)) {
+            throw new ExistingUserException("Error: Cannot play as " + joinGameRequest.getPlayerColor());
+        }
     }
 }

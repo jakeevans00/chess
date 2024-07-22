@@ -7,7 +7,19 @@ import spark.Response;
 import spark.Route;
 
 public class ListGamesHandler implements Route {
-    GameService gameService = new GameService();
+    private static ListGamesHandler instance;
+    private final GameService gameService;
+
+    private ListGamesHandler() {
+        gameService = new GameService();
+    }
+
+    public static ListGamesHandler getInstance() {
+        if (instance == null) {
+            instance = new ListGamesHandler();
+        }
+        return instance;
+    }
 
     @Override
     public Object handle(Request request, Response response) throws Exception {

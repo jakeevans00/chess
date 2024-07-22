@@ -7,36 +7,29 @@ import response.LoginResponse;
 import response.LogoutResponse;
 import response.RegisterResponse;
 import service.exceptions.InvalidCredentialsException;
-import service.exceptions.MalformedRegistrationException;
+import service.exceptions.MalformedRequestException;
 import service.exceptions.ExistingUserException;
 
 import java.util.UUID;
 
 public class UserService {
-    private final UserDAO userDAO = new MemoryUserDAO();
-    private final AuthDAO authDAO = new MemoryAuthDAO();
+    private final UserDAO userDAO;
+    private final AuthDAO authDAO;
+
+    public UserService() {
+        this.userDAO = new MemoryUserDAO();
+        this.authDAO = new MemoryAuthDAO();
+    }
 
     public RegisterResponse register(UserData user) throws Exception {
-        UserData result = userDAO.getUser(user.username());
+        validateUser(user);
 
-        if (result != null) {
-            throw new ExistingUserException("Error: Username already exists");
-        }
-
-        if (HelperService.isInvalidString(user.username()) || HelperService.isInvalidString(user.password())) {
-            throw new MalformedRegistrationException("Error: Invalid format for username or password");
-        }
-
-        try {
+        return ServiceUtils.execute(() -> {
             userDAO.createUser(user);
             AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
             return new RegisterResponse(auth.username(), auth.authToken());
-        } catch (Exception e) {
-            throw new DataAccessException("Error: Unable to reach database");
-        }
+        });
     }
-
-
 
     public LoginResponse login(UserData user) throws Exception {
         UserData result = userDAO.getUser(user.username());
@@ -45,23 +38,29 @@ public class UserService {
             throw new InvalidCredentialsException("Error: Unauthorized");
         }
 
-        try {
+        return ServiceUtils.execute(() -> {
             AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
             return new LoginResponse(auth.username(), auth.authToken());
+        });
+    }
 
-        } catch (Exception e) {
-            throw new DataAccessException("Error: Unable to access data");
-        }
+    public LogoutResponse logout(String authToken) throws Exception {
+        return ServiceUtils.execute(() -> {
+            authDAO.deleteAuth(authDAO.getAuth(authToken));
+            return new LogoutResponse();
+        });
     }
 
 
+    private void validateUser(UserData user) throws Exception {
+        UserData result = userDAO.getUser(user.username());
 
-    public LogoutResponse logout(String authToken) throws Exception {
-        try {
-            authDAO.deleteAuth(authDAO.getAuth(authToken));
-            return new LogoutResponse();
-        } catch (Exception e) {
-            throw new DataAccessException("Error: Database Error");
+        if (result != null) {
+            throw new ExistingUserException("Error: Username already exists");
+        }
+
+        if (ServiceUtils.isInvalidString(user.username()) || ServiceUtils.isInvalidString(user.password())) {
+            throw new MalformedRequestException("Error: Invalid format for username or password");
         }
     }
 }

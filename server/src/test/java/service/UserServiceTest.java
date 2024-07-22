@@ -1,16 +1,12 @@
 package service;
 
-import dataaccess.DataAccessException;
-import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import response.LoginResponse;
 import response.RegisterResponse;
 import service.exceptions.InvalidCredentialsException;
-import service.exceptions.MalformedRegistrationException;
-
-import static org.junit.jupiter.api.Assertions.*;
+import service.exceptions.MalformedRequestException;
 
 class UserServiceTest {
     private final UserService userService = new UserService();
@@ -58,13 +54,13 @@ class UserServiceTest {
     @Test
     void registerInvalidUsername() {
         UserData user = new UserData("", "password", "email");
-        Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
+        Assertions.assertThrows(MalformedRequestException.class, () -> userService.register(user));
     }
 
     @Test
     void registerInvalidPassword() {
         UserData user = new UserData("badPasswordUser", "pass with spaces", "email");
-        Assertions.assertThrows(MalformedRegistrationException.class, () -> userService.register(user));
+        Assertions.assertThrows(MalformedRequestException.class, () -> userService.register(user));
     }
 
     @Test

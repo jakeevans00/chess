@@ -9,7 +9,19 @@ import spark.Response;
 import spark.Route;
 
 public class JoinGameHandler implements Route {
-    private final GameService gameService = new GameService();
+    private static JoinGameHandler instance;
+    private final GameService gameService;
+
+    private JoinGameHandler() {
+        this.gameService = new GameService();
+    }
+
+    public static JoinGameHandler getInstance() {
+        if (instance == null) {
+            instance = new JoinGameHandler();
+        }
+        return instance;
+    }
 
     @Override
     public Object handle(Request request, Response response) throws Exception {

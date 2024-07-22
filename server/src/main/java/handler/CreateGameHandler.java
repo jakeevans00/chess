@@ -8,7 +8,19 @@ import spark.Response;
 import spark.Route;
 
 public class CreateGameHandler implements Route {
-    private final GameService gameService = new GameService();
+    private static CreateGameHandler createGameHandler;
+    private final GameService gameService;
+
+    private CreateGameHandler() {
+        this.gameService = new GameService();
+    }
+
+    public static CreateGameHandler getInstance() {
+        if (createGameHandler == null) {
+            createGameHandler = new CreateGameHandler();
+        }
+        return createGameHandler;
+    }
 
     @Override
     public String handle(Request request, Response response) throws Exception {
