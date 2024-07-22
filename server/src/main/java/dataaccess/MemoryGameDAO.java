@@ -13,7 +13,7 @@ public class MemoryGameDAO implements GameDAO {
 
     @Override
     public List<GameData> getAllGames() {
-        return List.of();
+        return DataStore.getInstance().getAllGames();
     }
 
     @Override

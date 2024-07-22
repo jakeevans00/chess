@@ -9,6 +9,8 @@ import request.JoinGameRequest;
 import response.CreateGameResponse;
 import response.JoinGameResponse;
 import response.ListGamesResponse;
+import service.exceptions.ExistingUserException;
+import service.exceptions.ForbiddenActionException;
 import service.exceptions.MalformedRegistrationException;
 
 import java.util.Objects;
@@ -30,7 +32,6 @@ public class GameService {
             ChessGame newGame = new ChessGame();
             GameData game = new GameData(DataStore.getInstance().getNextCount(), null, null, gameDataRequest.gameName(),newGame);
             gameDAO.addGame(game);
-            System.out.println(game.gameID());
             return new CreateGameResponse(game.gameID());
         } catch (Exception e) {
             throw new DataAccessException("Error: Unable to reach database");
@@ -38,7 +39,6 @@ public class GameService {
     }
 
     public JoinGameResponse joinGame(JoinGameRequest gameDataRequest, String authToken) throws Exception {
-        System.out.println(gameDataRequest.getGameId());
         GameData game = DataStore.getInstance().getGame(gameDataRequest.getGameId());
         AuthData auth = authDAO.getAuth(authToken);
         gameDataRequest.setUsername(auth.username());
@@ -47,12 +47,16 @@ public class GameService {
             throw new MalformedRegistrationException("Error: Game does not exist");
         }
 
+        if (gameDataRequest.getPlayerColor() == null) {
+            throw new MalformedRegistrationException("Error: Invalid player color");
+        }
+
         if (game.whiteUsername() != null && game.blackUsername() != null) {
-            throw new MalformedRegistrationException("Error: Game already has 2 players");
+            throw new ForbiddenActionException("Error: Game already has 2 players");
         }
 
         if (!colorIsAvailable(gameDataRequest.getPlayerColor(), game)) {
-            throw new MalformedRegistrationException("Error: Cannot play as " + gameDataRequest.getPlayerColor());
+            throw new ExistingUserException("Error: Cannot play as " + gameDataRequest.getPlayerColor());
         }
 
         try {
@@ -65,7 +69,7 @@ public class GameService {
     }
 
     public ListGamesResponse listGames() {
-        return new ListGamesResponse();
+        return new ListGamesResponse(gameDAO.getAllGames());
     }
 
     private GameData addUserToGame(GameData game, JoinGameRequest user) {

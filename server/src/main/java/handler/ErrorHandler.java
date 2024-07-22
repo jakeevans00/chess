@@ -1,6 +1,7 @@
 package handler;
 
 import service.exceptions.ExistingUserException;
+import service.exceptions.ForbiddenActionException;
 import service.exceptions.InvalidCredentialsException;
 import service.exceptions.MalformedRegistrationException;
 import spark.Response;
@@ -12,7 +13,7 @@ public class ErrorHandler {
         switch (e) {
             case MalformedRegistrationException _ -> response.status(400);
             case InvalidCredentialsException _ -> response.status(401);
-            case ExistingUserException _ -> response.status(403);
+            case ExistingUserException _, ForbiddenActionException _ -> response.status(403);
             case null, default -> response.status(500);
         }
 

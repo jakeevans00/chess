@@ -13,7 +13,6 @@ public class JoinGameHandler implements Route {
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        System.out.println(Serializer.deserialize(request, JoinGameRequest.class).getGameId());
         JoinGameRequest gameData = Serializer.deserialize(request, JoinGameRequest.class);
         String authToken = request.headers("Authorization");
 
