@@ -11,12 +11,6 @@ import service.exceptions.MalformedRequestException;
 class UserServiceTest {
     private final UserService userService = new UserService();
 
-
-    @Test
-    void clear() {
-
-    }
-
     @Test
     void loginSuccess() throws Exception {
         UserData user = new UserData("username", "password", "email");

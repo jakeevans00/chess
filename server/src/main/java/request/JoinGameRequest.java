@@ -7,7 +7,7 @@ public class JoinGameRequest {
     private final ChessGame.TeamColor playerColor;
     private String username = "";
 
-    JoinGameRequest(ChessGame.TeamColor playerColor, int gameID) {
+    public JoinGameRequest(ChessGame.TeamColor playerColor, int gameID) {
         this.gameID = gameID;
         this.playerColor = playerColor;
     }

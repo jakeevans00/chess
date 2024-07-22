@@ -91,5 +91,6 @@ public class DataStore {
         users.clear();
         auths.clear();
         games.clear();
+        counter = 1;
     }
 }

@@ -8,7 +8,7 @@ import spark.Route;
 public class ClearHandler implements Route {
     private static ClearHandler instance;
 
-    private ClearHandler() {}
+    public ClearHandler() {}
 
     public static ClearHandler getInstance() {
         if (instance == null) {
