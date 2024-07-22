@@ -16,7 +16,13 @@ public class MemoryGameDAO implements GameDAO {
         return List.of();
     }
 
+    @Override
     public void addGame(GameData game) {
         DataStore.getInstance().addGame(game);
+    }
+
+    @Override
+    public void updateGame(GameData game) {
+        DataStore.getInstance().updateGame(game);
     }
 }

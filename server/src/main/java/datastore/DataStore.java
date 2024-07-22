@@ -66,12 +66,25 @@ public class DataStore {
         return this.games.get(gameId);
     }
 
+    public GameData getGame(String gameName) {
+        for (GameData game : this.games.values()) {
+            if (game.gameName().equals(gameName)) {
+                return game;
+            }
+        }
+        return null;
+    }
+
     public void addGame(GameData game) {
         games.put(game.gameID(), game);
     }
 
     public List<GameData> getAllGames() {
         return new ArrayList<>(this.games.values());
+    }
+
+    public void updateGame(GameData game) {
+        this.games.put(game.gameID(), game);
     }
 
     public void clearAll() {

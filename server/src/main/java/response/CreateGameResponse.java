@@ -3,15 +3,15 @@ package response;
 public class CreateGameResponse extends Response {
     private int gameID;
 
-    public CreateGameResponse(int gameId) {
-        this.gameID = gameId;
+    public CreateGameResponse(int gameID) {
+        this.gameID = gameID;
     }
 
     public CreateGameResponse(String message) {
         super(message);
     }
 
-    public int getGameId() {
+    public int getGameID() {
         return gameID;
     }
 }
