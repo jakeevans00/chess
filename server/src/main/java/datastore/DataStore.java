@@ -11,7 +11,7 @@ public class DataStore {
     private final HashMap<String, UserData> users;
     private final HashMap<String, AuthData> auths;
     private final HashMap<Integer, GameData> games;
-    private int idCounter = 1;
+    private int counter = 1;
 
     private DataStore() {
         UserData testUser = new UserData("username","password", "email");
@@ -35,6 +35,10 @@ public class DataStore {
             }
         }
         return instance;
+    }
+
+    public int getNextCount() {
+        return counter++;
     }
 
     public UserData getUser(String username) {
@@ -63,8 +67,7 @@ public class DataStore {
     }
 
     public void addGame(GameData game) {
-        this.games.put(idCounter, game);
-        idCounter++;
+        games.put(game.gameID(), game);
     }
 
     public List<GameData> getAllGames() {

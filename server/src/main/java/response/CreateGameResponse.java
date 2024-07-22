@@ -1,10 +1,10 @@
 package response;
 
 public class CreateGameResponse extends Response {
-    private int gameId;
+    private int gameID;
 
     public CreateGameResponse(int gameId) {
-        this.gameId = gameId;
+        this.gameID = gameId;
     }
 
     public CreateGameResponse(String message) {
@@ -12,6 +12,6 @@ public class CreateGameResponse extends Response {
     }
 
     public int getGameId() {
-        return gameId;
+        return gameID;
     }
 }
