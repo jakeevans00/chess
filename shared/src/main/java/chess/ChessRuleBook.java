@@ -70,7 +70,8 @@ public interface ChessRuleBook {
     }
 
     static boolean isCastle(ChessPiece piece, ChessMove move) {
-        return piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn()) == 2;
+        return piece.getPieceType() == ChessPiece.PieceType.KING &&
+               Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn()) == 2;
     }
 
     static boolean isInCheck(ChessBoard board, ChessGame.TeamColor teamColor){

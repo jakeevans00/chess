@@ -20,7 +20,7 @@ public class ChessBoard {
         this.history = copy.history;
     }
 
-    public static String STANDARD_BOARD = """
+    public static final String STANDARD_BOARD = """
                         |r|n|b|q|k|b|n|r|
                         |p|p|p|p|p|p|p|p|
                         | | | | | | | | |
@@ -92,7 +92,8 @@ public class ChessBoard {
         ChessPiece capturedPiece = chessPieces.put(move.getEndPosition(), movedPiece);
 
         // En Passant
-        if (movedPiece.getPieceType() == ChessPiece.PieceType.PAWN && capturedPiece == null && move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
+        if (movedPiece.getPieceType() == ChessPiece.PieceType.PAWN &&
+            capturedPiece == null && move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
             int mod = movedPiece.getTeamColor() == ChessGame.TeamColor.BLACK ? -1 : 1;
             ChessPosition position = new ChessPosition(move.getEndPosition().getRow()-mod, move.getEndPosition().getColumn());
             capturedPiece = removePiece(position);
@@ -103,7 +104,9 @@ public class ChessBoard {
 
     public void castle(ChessMove move) {
         int row = move.getStartPosition().getRow();
-        ChessMove castle = ChessRuleBook.isCastleLeft(move) ? new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) : new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
+        ChessMove castle = ChessRuleBook.isCastleLeft(move) ?
+                  new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4)) :
+                  new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6));
         movePiece(castle);
     }
 
@@ -176,8 +179,8 @@ public class ChessBoard {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         ChessBoard that = (ChessBoard) o;
         return Objects.equals(chessPieces, that.chessPieces);
     }

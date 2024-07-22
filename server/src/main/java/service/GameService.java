@@ -75,7 +75,7 @@ public class GameService {
     private boolean colorIsAvailable(ChessGame.TeamColor playerColor, GameData game) {
         if (Objects.equals(playerColor, ChessGame.TeamColor.WHITE) && game.whiteUsername() != null) {
             return false;
-        } else return !Objects.equals(playerColor, ChessGame.TeamColor.BLACK) || game.blackUsername() == null;
+        } else { return !Objects.equals(playerColor, ChessGame.TeamColor.BLACK) || game.blackUsername() == null; }
     }
 
     private void validateCreateGameRequest(GameData gameDataRequest) throws MalformedRequestException {

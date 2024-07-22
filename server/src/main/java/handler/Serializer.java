@@ -4,13 +4,13 @@ import com.google.gson.Gson;
 import spark.Request;
 
 public class Serializer {
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public static <T> T deserialize(Request request, Class<T> clazz) {
-        return gson.fromJson(request.body(), clazz);
+        return GSON.fromJson(request.body(), clazz);
     }
 
     public static String serialize(Object res) {
-        return gson.toJson(res);
+        return GSON.toJson(res);
     }
 }

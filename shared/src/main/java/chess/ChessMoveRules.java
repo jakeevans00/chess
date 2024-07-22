@@ -195,7 +195,10 @@ public class ChessMoveRules implements ChessRuleBook {
         ChessPiece prevMovePiece = board.getPiece(prevMove.getEndPosition());
         int prevMoveEndRow = prevMove.getEndPosition().getRow();
         int distance = Math.abs(prevMove.getStartPosition().getRow() - prevMove.getEndPosition().getRow());
-        if (prevMovePiece != null && prevMovePiece.getPieceType() == ChessPiece.PieceType.PAWN && distance == 2 && myPosition.getRow() == prevMoveEndRow) {
+        if (prevMovePiece != null &&
+            prevMovePiece.getPieceType() == ChessPiece.PieceType.PAWN &&
+            distance == 2 && myPosition.getRow() == prevMoveEndRow)
+        {
             moves.add(new ChessMove(myPosition, new ChessPosition(prevMove.getEndPosition().getRow() + mod, prevMove.getEndPosition().getColumn())));
         }
 

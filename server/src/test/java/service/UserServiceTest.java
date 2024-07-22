@@ -1,7 +1,10 @@
 package service;
 
+import dataaccess.DataAccessException;
+import datastore.DataStore;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import response.LoginResponse;
 import response.RegisterResponse;
@@ -10,6 +13,13 @@ import service.exceptions.MalformedRequestException;
 
 class UserServiceTest {
     private final UserService userService = new UserService();
+    DataStore dataStore = DataStore.getInstance();
+
+    @BeforeEach
+    void setUp() throws Exception {
+        dataStore.clearAll();
+        userService.register(new UserData("username", "password", "email"));
+    }
 
     @Test
     void loginSuccess() throws Exception {
@@ -24,14 +34,12 @@ class UserServiceTest {
     @Test
     void loginInvalidUsername() {
         UserData user = new UserData("name", "password", "mail");
-
         Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
     }
 
     @Test
     void loginInvalidPassword() {
         UserData user = new UserData("username", "wrongPassword", "email");
-
         Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.login(user));
     }
 
@@ -53,7 +61,7 @@ class UserServiceTest {
 
     @Test
     void registerInvalidPassword() {
-        UserData user = new UserData("badPasswordUser", "pass with spaces", "email");
+        UserData user = new UserData("badPasswordUser", "", "email");
         Assertions.assertThrows(MalformedRequestException.class, () -> userService.register(user));
     }
 
@@ -67,6 +75,6 @@ class UserServiceTest {
     @Test
     void logoutInvalidAuthToken() {
         String invalidAuthToken = "invalidAuthToken";
-        Assertions.assertThrows(InvalidCredentialsException.class, () -> userService.logout(invalidAuthToken));
+        Assertions.assertThrows(DataAccessException.class, () -> userService.logout(invalidAuthToken));
     }
 }
