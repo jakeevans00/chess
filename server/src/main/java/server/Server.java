@@ -1,9 +1,12 @@
 package server;
 
+import dataaccess.AuthDAO;
+import dataaccess.MemoryAuthDAO;
 import handler.*;
 import spark.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 public class Server {
 
@@ -24,6 +27,23 @@ public class Server {
     }
 
     public static void createRoutes() {
+        AuthDAO authDAO = new MemoryAuthDAO();
+
+        Spark.before((request, response) -> {
+            String path = request.pathInfo();
+
+            if (!path.equals("/") &&
+                    !path.equals("/user") &&
+                    !(path.equals("/session") && "POST".equals(request.requestMethod())) &&
+                    !path.equals("/db")) {
+                String authToken = request.headers("authorization");
+                if (authToken == null || authDAO.getAuth(authToken) == null) {
+                    response.Response authResponse = new response.Response("Error: Not Authenticated");
+                    Spark.halt(401, Serializer.serialize(authResponse));
+                }
+            }
+        });
+
         Spark.get("/", ((request, response) -> {
             response.type("text/html");
             return new String(Files.readAllBytes(Paths.get("src/main/resources/public/index.html")));

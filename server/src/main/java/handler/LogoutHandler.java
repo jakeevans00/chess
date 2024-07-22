@@ -13,8 +13,6 @@ public class LogoutHandler implements Route {
         UserService userService = new UserService();
         String authToken = request.headers("authorization");
 
-        System.out.println(authToken);
-
         try {
             LogoutResponse logoutResponse = userService.logout(authToken);
             return Serializer.serialize(logoutResponse);

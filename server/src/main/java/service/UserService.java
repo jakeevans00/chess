@@ -23,7 +23,7 @@ public class UserService {
             throw new ExistingUserException("Error: Username already exists");
         }
 
-        if (isInvalidString(user.username()) || isInvalidString(user.password())) {
+        if (HelperService.isInvalidString(user.username()) || HelperService.isInvalidString(user.password())) {
             throw new MalformedRegistrationException("Error: Invalid format for username or password");
         }
 
@@ -42,7 +42,7 @@ public class UserService {
         UserData result = userDAO.getUser(user.username());
 
         if (result == null || !user.password().equals(result.password())) {
-            throw new InvalidCredentialsException("Error: unauthorized");
+            throw new InvalidCredentialsException("Error: Unauthorized");
         }
 
         try {
@@ -57,22 +57,11 @@ public class UserService {
 
 
     public LogoutResponse logout(String authToken) throws Exception {
-        AuthData auth = authDAO.getAuth(authToken);
-
-        if (auth == null) {
-            System.out.println("Auth was null");
-            throw new InvalidCredentialsException("Error: Unauthorized");
-        }
-
         try {
-            authDAO.deleteAuth(auth);
+            authDAO.deleteAuth(authDAO.getAuth(authToken));
             return new LogoutResponse();
         } catch (Exception e) {
             throw new DataAccessException("Error: Database Error");
         }
-    }
-
-    private boolean isInvalidString(String str) {
-        return str == null || str.length() > 20 || str.contains(" ") || str.isEmpty();
     }
 }

@@ -11,8 +11,8 @@ public class ErrorHandler {
 
         switch (e) {
             case MalformedRegistrationException _ -> response.status(400);
-            case ExistingUserException _ -> response.status(403);
             case InvalidCredentialsException _ -> response.status(401);
+            case ExistingUserException _ -> response.status(403);
             case null, default -> response.status(500);
         }
 

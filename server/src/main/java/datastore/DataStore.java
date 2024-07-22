@@ -11,14 +11,17 @@ public class DataStore {
     private final HashMap<String, UserData> users;
     private final HashMap<String, AuthData> auths;
     private final HashMap<Integer, GameData> games;
+    private int idCounter = 1;
 
     private DataStore() {
-        UserData test = new UserData("username","password", "email");
+        UserData testUser = new UserData("username","password", "email");
+        AuthData testAuth = new AuthData("username", "ddd256dd-b041-4513-910f-c5408a8e6746");
         this.users = new HashMap<>();
         this.auths = new HashMap<>();
         this.games = new HashMap<>();
 
-        this.users.put(test.username(),test);
+        this.users.put(testUser.username(), testUser);
+        this.auths.put(testAuth.authToken(), testAuth);
     }
 
     public static DataStore getInstance() {
@@ -53,6 +56,19 @@ public class DataStore {
 
     public void deleteAuth(String authToken) {
         this.auths.remove(authToken);
+    }
+
+    public GameData getGame(int gameId) {
+        return this.games.get(gameId);
+    }
+
+    public void addGame(GameData game) {
+        this.games.put(idCounter, game);
+        idCounter++;
+    }
+
+    public List<GameData> getAllGames() {
+        return new ArrayList<>(this.games.values());
     }
 
     public void clearAll() {

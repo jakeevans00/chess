@@ -13,6 +13,7 @@ import spark.Route;
 public class LoginHandler implements Route {
     private final UserService userService = new UserService();
 
+    @Override
     public String handle(Request request, Response response) {
         UserData userData = Serializer.deserialize(request, UserData.class);
 
