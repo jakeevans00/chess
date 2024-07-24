@@ -70,3 +70,39 @@ public class DatabaseManager {
         }
     }
 }
+
+// MYSQL Create statements
+
+//create table User
+//        (
+//                username VARCHAR(20)  not null,
+//user_id  int auto_increment,
+//password TEXT         not null,
+//email    varchar(255) null,
+//constraint User_pk
+//primary key (user_id)
+//);
+
+//create table Auth
+//        (
+//                auth_id    int auto_increment
+//                primary key,
+//                auth_token text        not null,
+//                username   varchar(20) not null,
+//constraint Auth_User_username_fk
+//foreign key (username) references chess.User (username)
+//);
+
+//create table Game
+//        (
+//                game_id        int auto_increment
+//                primary key,
+//                white_username varchar(20) null,
+//black_username varchar(20) null,
+//name           varchar(20) not null,
+//game           blob        not null,
+//constraint Game_User_username_fk
+//foreign key (white_username) references chess.User (username),
+//constraint Game_User_username_fk_2
+//foreign key (black_username) references chess.User (username)
+//);
