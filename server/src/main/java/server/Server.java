@@ -1,12 +1,14 @@
 package server;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.DatabaseManager;
 import dataaccess.MemoryAuthDAO;
 import handler.*;
 import spark.*;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 public class Server {
 
@@ -15,6 +17,7 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
+        configureDatabase();
         createRoutes();
 
         Spark.awaitInitialization();
@@ -26,7 +29,7 @@ public class Server {
         Spark.awaitStop();
     }
 
-    public static void createRoutes() {
+    private static void createRoutes() {
         AuthDAO authDAO = new MemoryAuthDAO();
 
         Spark.before((request, response) -> {
@@ -58,5 +61,13 @@ public class Server {
         Spark.put("/game", (req, res) -> JoinGameHandler.getInstance().handle(req,res));
 
         Spark.delete("/db", (req, res) -> ClearHandler.getInstance().handle(req, res));
+    }
+
+    private void configureDatabase() {
+        try {
+            DatabaseManager.configureDatabase();
+        } catch (DataAccessException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
