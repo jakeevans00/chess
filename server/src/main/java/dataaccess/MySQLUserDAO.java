@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class MySQLUserDAO implements UserDAO {
     @Override
     public void createUser(UserData user) throws Exception {
-        String statement = "INSERT INTO User VALUES (?,?,?)";
+        String statement = "INSERT INTO User (username, password, email) VALUES (?,?,?)";
         DatabaseManager.executeUpdate(statement, user.username(), user.password(), user.email());
     }
 

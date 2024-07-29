@@ -17,7 +17,7 @@ public class UserService {
     private final AuthDAO authDAO;
 
     public UserService() {
-        this.userDAO = new MemoryUserDAO();
+        this.userDAO = new MySQLUserDAO();
         this.authDAO = new MemoryAuthDAO();
     }
 
@@ -53,14 +53,14 @@ public class UserService {
 
 
     private void validateUser(UserData user) throws Exception {
+        if (ServiceUtils.isInvalidString(user.username()) || ServiceUtils.isInvalidString(user.password())) {
+            throw new MalformedRequestException("Error: Invalid format for username or password");
+        }
+
         UserData result = userDAO.getUser(user.username());
 
         if (result != null) {
             throw new ExistingUserException("Error: Username already exists");
-        }
-
-        if (ServiceUtils.isInvalidString(user.username()) || ServiceUtils.isInvalidString(user.password())) {
-            throw new MalformedRequestException("Error: Invalid format for username or password");
         }
     }
 }

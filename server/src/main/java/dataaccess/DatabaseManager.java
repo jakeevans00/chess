@@ -112,6 +112,7 @@ public class DatabaseManager {
                 return 0;
             }
         } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
             throw new DataAccessException(ex.getMessage());
         }
     }
