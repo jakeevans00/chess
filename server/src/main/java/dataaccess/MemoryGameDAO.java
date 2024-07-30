@@ -17,8 +17,9 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public void addGame(GameData game) {
+    public int addGame(GameData game) {
         DataStore.getInstance().addGame(game);
+        return DataStore.getInstance().getNextCount() - 1;
     }
 
     @Override

@@ -13,6 +13,7 @@ import service.exceptions.ExistingUserException;
 import service.exceptions.ForbiddenActionException;
 import service.exceptions.MalformedRequestException;
 
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class GameService {
@@ -28,14 +29,14 @@ public class GameService {
         validateCreateGameRequest(gameDataRequest);
 
         return ServiceUtils.execute(() -> {
-            GameData game = new GameData(DataStore.getInstance().getNextCount(), null, null, gameDataRequest.gameName(), new ChessGame());
-            gameDAO.addGame(game);
-            return new CreateGameResponse(game.gameID());
+            GameData game = new GameData(0, null, null, gameDataRequest.gameName(), new ChessGame());
+            int id = gameDAO.addGame(game);
+            return new CreateGameResponse(id);
         });
     }
 
     public JoinGameResponse joinGame(JoinGameRequest gameDataRequest, String authToken) throws Exception {
-        GameData game = DataStore.getInstance().getGame(gameDataRequest.getGameId());
+        GameData game = gameDAO.getGame(gameDataRequest.getGameId());
         validateJoinGameRequest(gameDataRequest, game, authToken);
 
         return ServiceUtils.execute(() -> {
@@ -78,7 +79,7 @@ public class GameService {
         } else { return !Objects.equals(playerColor, ChessGame.TeamColor.BLACK) || game.blackUsername() == null; }
     }
 
-    private void validateCreateGameRequest(GameData gameDataRequest) throws MalformedRequestException {
+    private void validateCreateGameRequest(GameData gameDataRequest) throws MalformedRequestException, SQLException, DataAccessException {
         if (gameDataRequest == null || ServiceUtils.isInvalidString(gameDataRequest.gameName())) {
             throw new MalformedRequestException("Error: Invalid game object or name");
         }
