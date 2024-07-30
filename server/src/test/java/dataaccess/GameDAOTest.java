@@ -1,11 +1,13 @@
 package dataaccess;
 
+import chess.ChessGame;
+import model.GameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 
-public class UserDAOTest {
+public class GameDAOTest {
     @BeforeEach
     public void setUp() throws Exception {
         try {
@@ -16,5 +18,11 @@ public class UserDAOTest {
     }
 
     @Test
-    public void testRegisterUser() {}
+    public void testCreateGame() throws SQLException, DataAccessException {
+        GameDAO gameDAO = new MySQLGameDAO();
+        ChessGame game = new ChessGame();
+        GameData gameData = new GameData("testGame", game);
+
+        gameDAO.addGame(gameData);
+    }
 }

@@ -6,4 +6,8 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
     public GameData(String gameName) {
         this(0, null, null, gameName, null);
     }
+
+    public GameData(String gameName, ChessGame game) {
+        this(0, null, null, gameName, game);
+    }
 }

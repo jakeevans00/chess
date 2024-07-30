@@ -21,7 +21,7 @@ public class GameService {
 
     public GameService() {
         this.gameDAO = new MemoryGameDAO();
-        this.authDAO = new MemoryAuthDAO();
+        this.authDAO = new MySQLAuthDAO();
     }
 
     public CreateGameResponse createGame(GameData gameDataRequest) throws Exception {
@@ -83,7 +83,7 @@ public class GameService {
             throw new MalformedRequestException("Error: Invalid game object or name");
         }
 
-        if (DataStore.getInstance().getGame(gameDataRequest.gameName()) != null) {
+        if (gameDAO.getGame(gameDataRequest.gameID()) != null) {
             throw new MalformedRequestException("Error: Game already exists");
         }
     }

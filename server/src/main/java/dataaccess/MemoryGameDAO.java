@@ -8,7 +8,7 @@ import java.util.List;
 public class MemoryGameDAO implements GameDAO {
     @Override
     public GameData getGame(int id) {
-        return null;
+        return DataStore.getInstance().getGame(id);
     }
 
     @Override
