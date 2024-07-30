@@ -117,6 +117,23 @@ public class DatabaseManager {
         }
     }
 
+    public static void deleteAllData() throws SQLException, DataAccessException {
+        try (var conn = getConnection()) {
+            for (String table : TABLES) {
+                String sql = "DELETE FROM " + table;
+                try(var ps = conn.prepareStatement(sql)) {
+                    ps.executeUpdate();
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        }
+    }
+
+    private static final String[] TABLES = {
+            "Auth","User","Game"
+    };
+
     private static final String[] CREATE_STATEMENTS = {
             """
             create table if not exists User (

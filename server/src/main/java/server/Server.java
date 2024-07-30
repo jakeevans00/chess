@@ -1,9 +1,6 @@
 package server;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
-import dataaccess.DatabaseManager;
-import dataaccess.MemoryAuthDAO;
+import dataaccess.*;
 import handler.*;
 import spark.*;
 
@@ -30,7 +27,7 @@ public class Server {
     }
 
     private static void createRoutes() {
-        AuthDAO authDAO = new MemoryAuthDAO();
+        AuthDAO authDAO = new MySQLAuthDAO();
 
         Spark.before((request, response) -> {
             String path = request.pathInfo();

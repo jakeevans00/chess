@@ -18,7 +18,7 @@ public class UserService {
 
     public UserService() {
         this.userDAO = new MySQLUserDAO();
-        this.authDAO = new MemoryAuthDAO();
+        this.authDAO = new MySQLAuthDAO();
     }
 
     public RegisterResponse register(UserData user) throws Exception {

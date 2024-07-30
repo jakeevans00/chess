@@ -8,13 +8,8 @@ import java.sql.SQLException;
 public class UserDAOTest {
     @BeforeEach
     public void setUp() throws Exception {
-        try(var conn = DatabaseManager.getConnection()) {
-            try(var stmt = conn.createStatement()) {
-                stmt.executeUpdate("DELETE FROM User");
-            }
-            try(var stmt = conn.createStatement()) {
-                stmt.executeUpdate("DELETE FROM Auth");
-            }
+        try {
+            DatabaseManager.deleteAllData();
         } catch(SQLException e) {
             System.out.println(e.getMessage());
         }
