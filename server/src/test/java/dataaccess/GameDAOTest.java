@@ -76,4 +76,15 @@ public class GameDAOTest {
 
         Assertions.assertEquals(update.whiteUsername(), gameDAO.getGame(update.gameID()).whiteUsername());
     }
+
+    @Test
+    public void updateFail() throws Exception {
+        UserDAO userDAO = new MySQLUserDAO();
+        userDAO.createUser(new UserData("white username", "password", ""));
+        GameData gameData = new GameData("TestGame", new ChessGame());
+        int result = gameDAO.addGame(gameData);
+
+        GameData update = new GameData(result, "white username", null, null, gameData.game());
+        Assertions.assertThrows(Exception.class, () -> {gameDAO.updateGame(update);});
+    }
 }

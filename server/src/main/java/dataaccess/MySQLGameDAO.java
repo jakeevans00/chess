@@ -91,16 +91,16 @@ public class MySQLGameDAO implements GameDAO {
         GameData gameToUpdate = getGame(gameData.gameID());
 
         if (gameToUpdate != null) {
-            String statement = "UPDATE Game SET white_username = ?, black_username = ?, name = ?, game = ? WHERE game_id = ?";
+            String stmt = "UPDATE Game SET white_username = ?, black_username = ?, name = ?, game = ? WHERE game_id = ?";
             var json = Serializer.serialize(gameData.game());
-            DatabaseManager.executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), json, gameToUpdate.gameID());
+            DatabaseManager.executeUpdate(stmt, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), json, gameToUpdate.gameID());
         }
     }
 
     private GameData readGame(ResultSet rs) throws SQLException {
-        int game_id = rs.getInt("game_id");
-        String white_username = rs.getString("white_username");
-        String black_username = rs.getString("black_username");
+        int gameId = rs.getInt("game_id");
+        String whiteUsername = rs.getString("white_username");
+        String blackUsername = rs.getString("black_username");
         String name = rs.getString("name");
         String game = rs.getString("game");
         Gson gson = new GsonBuilder()
@@ -108,6 +108,6 @@ public class MySQLGameDAO implements GameDAO {
                 .create();
         ChessGame g = gson.fromJson(game, ChessGame.class);
 
-        return new GameData(game_id, white_username, black_username, name, g);
+        return new GameData(gameId, whiteUsername, blackUsername, name, g);
     }
 }
