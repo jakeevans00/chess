@@ -131,7 +131,7 @@ public class DatabaseManager {
     }
 
     private static final String[] TABLES = {
-            "Auth","User","Game"
+            "Auth", "Game", "User"
     };
 
     private static final String[] CREATE_STATEMENTS = {

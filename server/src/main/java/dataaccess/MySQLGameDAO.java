@@ -72,8 +72,14 @@ public class MySQLGameDAO implements GameDAO {
     }
 
     @Override
-    public void updateGame(GameData game) {
+    public void updateGame(GameData gameData) throws SQLException, DataAccessException {
+        GameData gameToUpdate = getGame(gameData.gameID());
 
+        if (gameToUpdate != null) {
+            String statement = "UPDATE Game SET white_username = ?, black_username = ?, name = ?, game = ? WHERE game_id = ?";
+            var json = Serializer.serialize(gameData.game());
+            DatabaseManager.executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), json, gameToUpdate.gameID());
+        }
 
     }
 
