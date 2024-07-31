@@ -15,6 +15,10 @@ public class ChessGame {
         getBoard().loadBoard(ChessBoard.STANDARD_BOARD);
     }
 
+    @Override
+    public String toString() {
+        return state.toString();
+    }
     /**
      * Enum identifying the 2 possible teams in a chess game
      */

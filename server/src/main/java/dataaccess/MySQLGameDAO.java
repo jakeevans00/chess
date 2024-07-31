@@ -1,9 +1,12 @@
 package dataaccess;
 
 import chess.ChessGame;
+import chess.ChessPosition;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import handler.Serializer;
 import model.GameData;
+import utilities.ChessPositionAdapter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +24,6 @@ public class MySQLGameDAO implements GameDAO {
                         return readGame(rs);
                     }
                 }
-
             }
         }
         return null;
@@ -67,8 +69,13 @@ public class MySQLGameDAO implements GameDAO {
         String white_username = rs.getString("white_username");
         String black_username = rs.getString("black_username");
         String name = rs.getString("name");
-        ChessGame json = new Gson().fromJson(rs.getString("game"), ChessGame.class);
+        String game = rs.getString("game");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
+                .create();
+        ChessGame g = gson.fromJson(game, ChessGame.class);
+        System.out.println(g);
 
-        return new GameData(game_id, white_username, black_username, name, json);
+        return new GameData(game_id, white_username, black_username, name, g);
     }
 }
