@@ -74,7 +74,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return ChessRuleBook.pieceMoves(board, myPosition);
+        return ChessMoveRules.pieceMoves(board, myPosition);
     }
 
     public int getMoveCount() {

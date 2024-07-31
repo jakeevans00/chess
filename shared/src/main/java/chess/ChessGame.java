@@ -47,7 +47,7 @@ public class ChessGame {
         if (startPosition == null) {
             return null;
         }
-        HashSet<ChessMove> validMoves = new HashSet<>(ChessRuleBook.pieceMoves(state.getBoard(), startPosition));
+        HashSet<ChessMove> validMoves = new HashSet<>(ChessMoveRules.pieceMoves(state.getBoard(), startPosition));
         ChessRuleBook.validateMoves(getBoard(), validMoves);
         return validMoves;
     }

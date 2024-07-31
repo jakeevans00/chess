@@ -2,11 +2,7 @@ package chess;
 
 import java.util.*;
 
-public interface ChessRuleBook {
-    static Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition){
-        return new HashSet<>(ChessMoveRules.pieceMoves(board, myPosition));
-    }
-
+public class ChessRuleBook {
     static Collection<ChessMove> teamMoves(ChessBoard board, ChessGame.TeamColor teamColor){
         Map<ChessPosition, ChessPiece> chessPieces = board.getChessPieces();
         Collection<ChessMove> moves = new HashSet<>();
