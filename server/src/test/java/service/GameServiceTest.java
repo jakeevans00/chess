@@ -1,6 +1,8 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
+import dataaccess.DatabaseManager;
 import datastore.DataStore;
 import model.GameData;
 import model.UserData;
@@ -14,29 +16,33 @@ import service.exceptions.ExistingUserException;
 import service.exceptions.MalformedRequestException;
 
 import javax.xml.crypto.Data;
+import java.sql.SQLException;
 
 public class GameServiceTest {
     GameService gameService = new GameService();
     UserService userService = new UserService();
-    DataStore dataStore = DataStore.getInstance();
 
     @BeforeEach
     void setUp() {
-        dataStore.clearAll();
+        try {
+            DatabaseManager.deleteAllData();
+        } catch(SQLException | DataAccessException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @Test
     public void createGameSuccess() throws Exception {
         GameData gameData = new GameData("My new game!");
         CreateGameResponse response = gameService.createGame(gameData);
-        Assertions.assertEquals(response.getGameID(), 1);
+        Assertions.assertTrue(response.getGameID() > 0);
     }
 
     @Test
     public void createDuplicateGame() throws Exception {
         GameData gameData = new GameData("My new game!");
         CreateGameResponse response = gameService.createGame(gameData);
-        Assertions.assertEquals(response.getGameID(), 1);
+        Assertions.assertTrue(response.getGameID() > 0);
         Assertions.assertThrows(MalformedRequestException.class, () -> gameService.createGame(gameData));
     }
 
@@ -53,10 +59,10 @@ public class GameServiceTest {
         LoginResponse loginResponse2 = userService.login(new UserData("username2", "password2", "email2"));
 
         GameData gameData = new GameData("My new game!");
-        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, 1);
-        JoinGameRequest request2 = new JoinGameRequest(ChessGame.TeamColor.BLACK, 1);
+        int gameId = gameService.createGame(gameData).getGameID();
+        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, gameId);
+        JoinGameRequest request2 = new JoinGameRequest(ChessGame.TeamColor.BLACK, gameId);
 
-        gameService.createGame(gameData);
         Assertions.assertDoesNotThrow(() -> gameService.joinGame(request, loginResponse.getAuthToken()));
         Assertions.assertDoesNotThrow(() -> gameService.joinGame(request2, loginResponse2.getAuthToken()));
     }
@@ -68,10 +74,11 @@ public class GameServiceTest {
         LoginResponse loginResponse2 = userService.login(new UserData("username2", "password2", "email2"));
 
         GameData gameData = new GameData("My new game!");
-        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, 1);
-        JoinGameRequest request2 = new JoinGameRequest(ChessGame.TeamColor.WHITE, 1);
+        int gameId = gameService.createGame(gameData).getGameID();
 
-        gameService.createGame(gameData);
+        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, gameId);
+        JoinGameRequest request2 = new JoinGameRequest(ChessGame.TeamColor.WHITE, gameId);
+
         Assertions.assertDoesNotThrow(() -> gameService.joinGame(request, loginResponse.getAuthToken()));
         Assertions.assertThrows(ExistingUserException.class, () -> gameService.joinGame(request2, loginResponse2.getAuthToken()));
     }

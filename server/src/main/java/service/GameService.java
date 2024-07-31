@@ -31,7 +31,6 @@ public class GameService {
         return ServiceUtils.execute(() -> {
             GameData game = new GameData(0, null, null, gameDataRequest.gameName(), new ChessGame());
             int id = gameDAO.addGame(game);
-            System.out.println(id);
             return new CreateGameResponse(id);
         });
     }
@@ -85,7 +84,7 @@ public class GameService {
             throw new MalformedRequestException("Error: Invalid game object or name");
         }
 
-        if (gameDAO.getGame(gameDataRequest.gameID()) != null) {
+        if (gameDAO.getGame(gameDataRequest.gameName()) != null) {
             throw new MalformedRequestException("Error: Game already exists");
         }
     }

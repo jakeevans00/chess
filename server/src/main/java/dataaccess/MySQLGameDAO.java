@@ -31,6 +31,21 @@ public class MySQLGameDAO implements GameDAO {
     }
 
     @Override
+    public GameData getGame(String name) throws SQLException, DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement("SELECT * FROM Game WHERE name = ?")) {
+                ps.setString(1, name);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readGame(rs);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<GameData> getAllGames() throws DataAccessException, SQLException {
         var games = new ArrayList<GameData>();
         try (var conn = DatabaseManager.getConnection()) {
@@ -93,7 +108,6 @@ public class MySQLGameDAO implements GameDAO {
                 .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
                 .create();
         ChessGame g = gson.fromJson(game, ChessGame.class);
-        System.out.println(g);
 
         return new GameData(game_id, white_username, black_username, name, g);
     }

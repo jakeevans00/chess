@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseManager;
 import datastore.DataStore;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
@@ -13,11 +14,10 @@ import service.exceptions.MalformedRequestException;
 
 class UserServiceTest {
     private final UserService userService = new UserService();
-    DataStore dataStore = DataStore.getInstance();
 
     @BeforeEach
     void setUp() throws Exception {
-        dataStore.clearAll();
+        DatabaseManager.deleteAllData();
         userService.register(new UserData("username", "password", "email"));
     }
 
