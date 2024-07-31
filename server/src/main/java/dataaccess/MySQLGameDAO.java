@@ -81,7 +81,7 @@ public class MySQLGameDAO implements GameDAO {
                 }
             }
         } catch (SQLException | DataAccessException e) {
-            System.out.println(e.getMessage());
+            throw new SQLException(e.getMessage());
         }
         return -1;
     }
@@ -95,7 +95,6 @@ public class MySQLGameDAO implements GameDAO {
             var json = Serializer.serialize(gameData.game());
             DatabaseManager.executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), json, gameToUpdate.gameID());
         }
-
     }
 
     private GameData readGame(ResultSet rs) throws SQLException {
