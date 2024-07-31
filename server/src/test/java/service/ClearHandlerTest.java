@@ -1,11 +1,8 @@
 package service;
 
 import dataaccess.DatabaseManager;
-import dataaccess.MemoryUserDAO;
 import dataaccess.MySQLUserDAO;
 import dataaccess.UserDAO;
-import datastore.DataStore;
-import handler.ClearHandler;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

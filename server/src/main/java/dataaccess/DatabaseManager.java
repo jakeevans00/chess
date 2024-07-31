@@ -153,7 +153,7 @@ public class DatabaseManager {
                 auth_token varchar(36) not null,
                 username   varchar(20) not null,
             constraint Auth_User_username_fk
-            foreign key (username) references chess.User (username),
+            foreign key (username) references User (username),
             index(auth_token),
             index(username)
             );
@@ -166,9 +166,9 @@ public class DatabaseManager {
                 name           varchar(20) not null,
                 game           blob        not null,
             constraint Game_User_username_fk
-            foreign key (white_username) references chess.User (username),
+            foreign key (white_username) references User (username),
             constraint Game_User_username_fk_2
-            foreign key (black_username) references chess.User (username),
+            foreign key (black_username) references User (username),
             index(name)
             );
             """,
@@ -180,9 +180,9 @@ public class DatabaseManager {
                 name           varchar(20) not null,
                 game           blob        not null,
             constraint Game_User_username_fk
-            foreign key (white_username) references chess.User (username),
+            foreign key (white_username) references User (username),
             constraint Game_User_username_fk_2
-            foreign key (black_username) references chess.User (username),
+            foreign key (black_username) references User (username),
             index(name)
             );
             """
