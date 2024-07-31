@@ -21,7 +21,7 @@ public class GameService {
     private final AuthDAO authDAO;
 
     public GameService() {
-        this.gameDAO = new MemoryGameDAO();
+        this.gameDAO = new MySQLGameDAO();
         this.authDAO = new MySQLAuthDAO();
     }
 
@@ -31,6 +31,7 @@ public class GameService {
         return ServiceUtils.execute(() -> {
             GameData game = new GameData(0, null, null, gameDataRequest.gameName(), new ChessGame());
             int id = gameDAO.addGame(game);
+            System.out.println(id);
             return new CreateGameResponse(id);
         });
     }
@@ -46,7 +47,7 @@ public class GameService {
         });
     }
 
-    public ListGamesResponse listGames() {
+    public ListGamesResponse listGames() throws SQLException, DataAccessException {
         return new ListGamesResponse(gameDAO.getAllGames());
     }
 

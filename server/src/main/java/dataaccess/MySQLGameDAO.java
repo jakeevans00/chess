@@ -11,6 +11,7 @@ import utilities.ChessPositionAdapter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MySQLGameDAO implements GameDAO {
@@ -30,8 +31,19 @@ public class MySQLGameDAO implements GameDAO {
     }
 
     @Override
-    public List<GameData> getAllGames() {
-        return List.of();
+    public List<GameData> getAllGames() throws DataAccessException, SQLException {
+        var games = new ArrayList<GameData>();
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement("SELECT * FROM Game")) {
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        GameData game = readGame(rs);
+                        games.add(game);
+                    }
+                }
+            }
+        }
+        return games;
     }
 
     @Override
@@ -61,6 +73,7 @@ public class MySQLGameDAO implements GameDAO {
 
     @Override
     public void updateGame(GameData game) {
+
 
     }
 

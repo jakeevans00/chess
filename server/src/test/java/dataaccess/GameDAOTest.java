@@ -2,10 +2,12 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class GameDAOTest {
     private final GameDAO gameDAO = new MySQLGameDAO();
@@ -31,5 +33,12 @@ public class GameDAOTest {
     public void getGameData() throws SQLException, DataAccessException {
         int result = gameDAO.addGame(new GameData("jakesGame", new ChessGame()));
         GameData gameData = gameDAO.getGame(result);
+    }
+
+    @Test
+    public void getAllGames() throws SQLException, DataAccessException {
+        int result = gameDAO.addGame(new GameData("jakesGame", new ChessGame()));
+        List<GameData> games = gameDAO.getAllGames();
+        Assertions.assertEquals(1, games.size());
     }
 }
