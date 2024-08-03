@@ -30,7 +30,7 @@ public class ConsoleApp {
                     displayOptions();
                     break;
                 case "login":
-                    serverFacade.login(commandArgs[1], commandArgs[2]);
+                    loggedIn = true;
                     break;
                 case "end":
                     System.out.println("end");
@@ -47,15 +47,16 @@ public class ConsoleApp {
 
     private void showUser() {
         if (loggedIn) {
-            System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED IN]");
+            System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED IN] >>> ");
         } else {
-            System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED OUT]");
+            System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED OUT] >>> ");
         }
     }
 
     private void displayOptions() {
         if (loggedIn) {
-            System.out.printf("%n[LOGGED IN] >> ");
+            AUTHENTICATED_COMMANDS.forEach((cmd, desc) ->
+                    System.out.printf("\t" + EscapeSequences.SET_TEXT_COLOR_BLUE + cmd + EscapeSequences.SET_TEXT_COLOR_MAGENTA + desc + "\n"));
         } else {
             UNAUTHENTICATED_COMMANDS.forEach((cmd, desc) ->
                     System.out.printf("\t" + EscapeSequences.SET_TEXT_COLOR_BLUE + cmd + EscapeSequences.SET_TEXT_COLOR_MAGENTA + desc + "\n"));
@@ -65,5 +66,16 @@ public class ConsoleApp {
     private static final Map<String, String> UNAUTHENTICATED_COMMANDS = new LinkedHashMap<String, String>() {{
         put("register <USERNAME> <PASSWORD> <EMAIL>", " - to create an account");
         put("login <USERNAME> <PASSWORD>", " - to login");
+        put("quit", " - if you're a quitter");
+        put("help", " - with possible commands");
+    }};
+
+    private static final Map<String, String> AUTHENTICATED_COMMANDS = new LinkedHashMap<String, String>() {{
+        put("create <GAME>", " - a game");
+        put("list", " - games");
+        put("join <ID> [WHITE|BLACK]", " - a game");
+        put("observe <ID>", " - a game");
+        put("quit", " - playing chess");
+        put("help", " - with possible commands");
     }};
 }
