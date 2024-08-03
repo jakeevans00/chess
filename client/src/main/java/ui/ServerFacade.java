@@ -9,7 +9,7 @@ import java.net.URL;
 public class ServerFacade {
     private static final String SERVER_URL = "localhost:8080";
 
-    public boolean login(String username, String password) {
+    public boolean login(String[] args) {
         try {
             URL url = new URL(SERVER_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -33,5 +33,13 @@ public class ServerFacade {
             System.out.println(e.getMessage());
             return false;
         }
+    }
+
+    public boolean register(String[] args) {
+        return false;
+    }
+
+    public boolean logout(String[] args) {
+        return false;
     }
 }

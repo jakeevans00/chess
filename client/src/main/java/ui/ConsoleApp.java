@@ -1,48 +1,48 @@
 package ui;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+
 import ui.EscapeSequences;
 
 import static javax.swing.UIManager.put;
 
 public class ConsoleApp {
-    Scanner scanner = new Scanner(System.in);
-    ServerFacade serverFacade = new ServerFacade();
-    boolean loggedIn = false;
+    private final Scanner scanner = new Scanner(System.in);
+    private final ServerFacade serverFacade = new ServerFacade();
+    private boolean loggedIn = false;
+
 
     public void start() {
-        boolean run = true;
+        introduceGame();
+        play();
+    }
 
-        System.out.print(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY);
-        System.out.printf("\uD83D\uDD25\uD83D\uDD25 Let's play some chess! " +
-                "Type 'help' to get started \uD83D\uDD25\uD83D\uDD25%n" +
-                "[LOGGED OUT] >>> ");
-
-        while (run) {
+    private void play() {
+        while (true) {
             String command = scanner.nextLine();
             String[] commandArgs = command.split(" ");
 
             switch (commandArgs[0]) {
-                case "help":
-                    displayOptions();
-                    break;
-                case "login":
-                    loggedIn = true;
-                    break;
-                case "end":
-                    System.out.println("end");
+                case "help" -> displayOptions();
+                case "register" -> serverFacade.register(commandArgs);
+                case "login" -> loggedIn = serverFacade.login(commandArgs);
+                case "logout" -> loggedIn = serverFacade.logout();
+                case "quit" -> {
                     scanner.close();
-                    run = false;
-                    break;
-                default:
-                    System.out.println("Invalid command");
+                    System.exit(0);
+                }
+                default -> System.out.println("Invalid command, try typing 'help'");
             }
 
             showUser();
         }
+    }
+
+    private void introduceGame() {
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY);
+        System.out.printf("\uD83D\uDD25\uD83D\uDD25 Let's play some chess! " +
+                "Type 'help' to get started \uD83D\uDD25\uD83D\uDD25%n" +
+                "[LOGGED OUT] >>> ");
     }
 
     private void showUser() {
@@ -63,14 +63,14 @@ public class ConsoleApp {
         }
     }
 
-    private static final Map<String, String> UNAUTHENTICATED_COMMANDS = new LinkedHashMap<String, String>() {{
+    private static final Map<String, String> UNAUTHENTICATED_COMMANDS = new LinkedHashMap<>() {{
         put("register <USERNAME> <PASSWORD> <EMAIL>", " - to create an account");
         put("login <USERNAME> <PASSWORD>", " - to login");
         put("quit", " - if you're a quitter");
         put("help", " - with possible commands");
     }};
 
-    private static final Map<String, String> AUTHENTICATED_COMMANDS = new LinkedHashMap<String, String>() {{
+    private static final Map<String, String> AUTHENTICATED_COMMANDS = new LinkedHashMap<>() {{
         put("create <GAME>", " - a game");
         put("list", " - games");
         put("join <ID> [WHITE|BLACK]", " - a game");
