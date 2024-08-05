@@ -1,17 +1,13 @@
 import server.Server;
-import ui.ConsoleApp;
+import ui.Repl;
 
 public class Main {
     public static void main(String[] args) {
-        try {
-            Server server = new Server();
-            server.run(8080);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return;
-        }
+        Server server = new Server();
+        server.run(8080);
 
-        ConsoleApp consoleManager = new ConsoleApp();
-        consoleManager.start();
+        var serverUrl = "http://localhost:8080";
+
+        new Repl(serverUrl).run();
     }
 }
