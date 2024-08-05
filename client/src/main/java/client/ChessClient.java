@@ -1,9 +1,12 @@
 package client;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import response.LoginResponse;
+import response.RegisterResponse;
 import server.ServerFacade;
 import ui.EscapeSequences;
 
@@ -29,13 +32,13 @@ public class ChessClient {
 
             return switch (cmd) {
                 case "help" -> displayOptions();
-                case "register"-> register(params);
-                case"login" -> login(params);
+                case "register" -> register(params);
+                case "login" -> login(params);
                 case "logout" -> logout();
-                case "create" -> create();
-                case "list" -> list();
-                case "join" -> join();
-                case "observe" -> observe();
+                case "create" -> create(params);
+//                case "list" -> list();
+//                case "join" -> join();
+//                case "observe" -> observe();
                 case "quit" -> "quit";
                 default -> "Invalid command, try typing help";
             };
@@ -51,8 +54,8 @@ public class ChessClient {
                 String password = params[1];
                 String email = params.length > 2 ? params[2] : "";
 
-                LoginResponse loginResponse = server.register(new UserData(username, password, email));
-                auth = new AuthData(loginResponse.getUsername(), loginResponse.getAuthToken());
+                RegisterResponse registerResponse = server.register(new UserData(username, password, email));
+                auth = new AuthData(registerResponse.getUsername(), registerResponse.getAuthToken());
                 state = State.LOGGED_IN;
                 return "Successfully registered " + auth.username();
             } catch (ResponseException e) {
@@ -62,36 +65,58 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD> <EMAIL>");
     }
 
-    public String login(String... params) {
-        return "";
+    public String login(String... params) throws ResponseException {
+        if (params.length >= 2) {
+            String username = params[0];
+            String password = params[1];
+
+            LoginResponse loginResponse = server.login(new UserData(username, password, ""));
+            auth = new AuthData(loginResponse.getUsername(), loginResponse.getAuthToken());
+            state = State.LOGGED_IN;
+            return "Successfully logged in " + auth.username();
+        }
+        throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD>");
     }
 
-    public String logout() {
-        return "";
+    public String logout() throws ResponseException {
+        assertAuthenticated();
+        try {
+            server.logout(auth.authToken());
+            state = State.LOGGED_OUT;
+            auth = null;
+            return "Successfully logged out";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
-    public String create() {
-        return "";
-    }
-
-    public String list() {
-        return "";
-    }
-    public String join() {
-        return "";
-    }
-    public String observe() {
-        return "";
-    }
-    public String observe(String... params) {
-        return "";
+    public String create(String... params) throws ResponseException {
+        assertAuthenticated();
+        if (params.length == 1) {
+            try {
+                String gameName = params[0];
+                server.createGame(auth.authToken(), new GameData(gameName));
+                return "Successfully created game " + gameName;
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <NAME>");
     }
 
 
-
-
-
-
+//
+//    public String list() throws ResponseException {
+//        assertAuthenticated();
+//    }
+//
+//    public String join() throws ResponseException {
+//        assertAuthenticated();
+//    }
+//
+//    public String observe() throws ResponseException {
+//        assertAuthenticated();
+//    }
 
     public void showUser() {
         if (state == State.LOGGED_IN) {

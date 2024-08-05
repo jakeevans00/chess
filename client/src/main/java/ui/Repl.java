@@ -24,6 +24,7 @@ public class Repl {
             try {
                 result = client.eval(line);
                 System.out.printf(result);
+                System.out.println();
                 client.showUser();
             } catch (Throwable e) {
 

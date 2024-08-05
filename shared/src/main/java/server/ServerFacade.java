@@ -2,9 +2,12 @@ package server;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
-import model.AuthData;
+import model.GameData;
 import model.UserData;
+import response.CreateGameResponse;
 import response.LoginResponse;
+import response.LogoutResponse;
+import response.RegisterResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,15 +24,25 @@ public class ServerFacade {
         this.serverUrl = serverUrl;
     }
 
-    public LoginResponse register(UserData user) throws ResponseException {
+    public RegisterResponse register(UserData user) throws ResponseException {
         var path = "/user";
-        return this.makeRequest("POST", path, user, LoginResponse.class);
+        return this.makeRequest("POST", path, null, user, RegisterResponse.class);
     }
-//
-//    public void deletePet(int id) throws ResponseException {
-//        var path = String.format("/pet/%s", id);
-//        this.makeRequest("DELETE", path, null, null);
-//    }
+
+    public LoginResponse login(UserData user) throws ResponseException {
+        var path = "/session";
+        return this.makeRequest("POST", path, null, user, LoginResponse.class);
+    }
+
+    public void logout(String token) throws ResponseException {
+        var path = "/session";
+        this.makeRequest("DELETE", path, token, null, LogoutResponse.class);
+    }
+
+    public CreateGameResponse createGame(String token, GameData game) throws ResponseException {
+        var path = "/game";
+        return this.makeRequest("POST", path, token, game, CreateGameResponse.class);
+    }
 //
 //    public void deleteAllPets() throws ResponseException {
 //        var path = "/pet";
@@ -44,19 +57,26 @@ public class ServerFacade {
 //        return response.pet();
 //    }
 
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
+    private <T> T makeRequest(String method, String path, String authToken, Object request, Class<T> responseClass) throws ResponseException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
+            writeHeader(authToken, http);
             writeBody(request, http);
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
         } catch (Exception ex) {
             throw new ResponseException(500, ex.getMessage());
+        }
+    }
+
+    private static void writeHeader(String authToken, HttpURLConnection http) throws IOException {
+        if (authToken != null) {
+            http.addRequestProperty("Authorization", authToken);
         }
     }
 
