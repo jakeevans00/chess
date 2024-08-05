@@ -2,6 +2,9 @@ package client;
 
 import exception.ResponseException;
 import model.AuthData;
+import model.UserData;
+import response.LoginResponse;
+import server.ServerFacade;
 import ui.EscapeSequences;
 
 import java.util.Arrays;
@@ -9,12 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ChessClient {
-    private String serverUrl;
+    private final ServerFacade server;
     private AuthData auth;
     private State state = State.LOGGED_OUT;
 
     public ChessClient(String serverUrl) {
-        this.serverUrl = serverUrl;
+        server = new ServerFacade(serverUrl);
     }
 
     public String eval(String input) {
@@ -41,8 +44,22 @@ public class ChessClient {
         }
     }
 
-    public String register(String... params) {
-        return "";
+    public String register(String... params) throws ResponseException {
+        if (params.length >= 2) {
+            try {
+                String username = params[0];
+                String password = params[1];
+                String email = params.length > 2 ? params[2] : "";
+
+                LoginResponse loginResponse = server.register(new UserData(username, password, email));
+                auth = new AuthData(loginResponse.getUsername(), loginResponse.getAuthToken());
+                state = State.LOGGED_IN;
+                return "Successfully registered " + auth.username();
+            } catch (ResponseException e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD> <EMAIL>");
     }
 
     public String login(String... params) {
