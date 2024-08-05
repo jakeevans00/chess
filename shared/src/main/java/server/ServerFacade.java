@@ -1,10 +1,13 @@
 package server;
 
+import chess.ChessPosition;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
 import model.UserData;
 import response.*;
+import utilities.ChessPositionAdapter;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -36,6 +39,16 @@ public class ServerFacade {
     public void createGame(String token, GameData game) throws ResponseException {
         var path = "/game";
         this.makeRequest("POST", path, token, game, CreateGameResponse.class);
+    }
+
+    public ListGamesResponse listGames(String token) throws ResponseException {
+        var path = "/game";
+        return this.makeRequest("GET", path, token, null, ListGamesResponse.class);
+    }
+
+    public JoinGameResponse joinGame(String token, GameData game) throws ResponseException {
+        var path = "/game";
+        return this.makeRequest("POST", path, token, game, JoinGameResponse.class);
     }
 //
 //    public void deleteAllPets() throws ResponseException {
@@ -113,12 +126,15 @@ public class ServerFacade {
     }
 
     private static <T> T readBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
+                .create();
         T response = null;
         if (http.getContentLength() < 0) {
             try (InputStream respBody = http.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if (responseClass != null) {
-                    response = new Gson().fromJson(reader, responseClass);
+                    response = gson.fromJson(reader, responseClass);
                 }
             }
         }

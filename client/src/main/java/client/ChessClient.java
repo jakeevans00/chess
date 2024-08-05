@@ -4,6 +4,7 @@ import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import response.ListGamesResponse;
 import response.LoginResponse;
 import response.RegisterResponse;
 import server.ServerFacade;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 public class ChessClient {
     private final ServerFacade server;
+    private final Map<Integer, GameData> listedGames = new LinkedHashMap<>();
     private AuthData auth;
     private State state = State.LOGGED_OUT;
 
@@ -35,7 +37,7 @@ public class ChessClient {
                 case "login" -> login(params);
                 case "logout" -> logout();
                 case "create" -> createGame(params);
-//                case "list" -> listGames();
+                case "list" -> listGames();
 //                case "join" -> join();
 //                case "observe" -> observe();
                 case "quit" -> "quit";
@@ -103,12 +105,26 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <NAME>");
     }
 
-//    public String listGames() throws ResponseException {
-//        assertAuthenticated();
-//        try {
-//
-//        }
-//    }
+    public String listGames() throws ResponseException {
+        assertAuthenticated();
+        try {
+            StringBuilder res = new StringBuilder();
+            res.append(String.format("%-10s %-20s %-15s %-15s%n", "Game ID", "Game Name", "White Player", "Black Player"));
+            res.append("---------------------------------------------------------\n");
+
+            ListGamesResponse listGamesResponse = server.listGames(auth.authToken());
+            for (int i = 1; i < listGamesResponse.getGames().size() + 1; i++) {
+                GameData game = listGamesResponse.getGames().get(i - 1);
+                listedGames.put(i,game);
+                res.append(String.format("%-10d %-20s %-15s %-15s%n",
+                        i, game.gameName(), game.whiteUsername(), game.blackUsername()));
+            }
+            return res.toString();
+
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
 //
 //    public String join() throws ResponseException {
 //        assertAuthenticated();
@@ -128,7 +144,7 @@ public class ChessClient {
     }
 
     private void assertAuthenticated() throws ResponseException {
-        if (state == State.LOGGED_OUT) {
+        if (state == State.LOGGED_OUT || auth.authToken() == null) {
             throw new ResponseException(400, "You must be signed in to run this command");
         }
     }
