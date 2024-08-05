@@ -4,15 +4,9 @@ import com.google.gson.Gson;
 import exception.ResponseException;
 import model.GameData;
 import model.UserData;
-import response.CreateGameResponse;
-import response.LoginResponse;
-import response.LogoutResponse;
-import response.RegisterResponse;
+import response.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -39,9 +33,9 @@ public class ServerFacade {
         this.makeRequest("DELETE", path, token, null, LogoutResponse.class);
     }
 
-    public CreateGameResponse createGame(String token, GameData game) throws ResponseException {
+    public void createGame(String token, GameData game) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("POST", path, token, game, CreateGameResponse.class);
+        this.makeRequest("POST", path, token, game, CreateGameResponse.class);
     }
 //
 //    public void deleteAllPets() throws ResponseException {
@@ -94,8 +88,28 @@ public class ServerFacade {
     private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, ResponseException {
         var status = http.getResponseCode();
         if (!isSuccessful(status)) {
-            throw new ResponseException(status, "failure: " + status);
+            String errorMessage = readErrorResponse(http);
+            throw new ResponseException(status, errorMessage);
         }
+    }
+
+    private String readErrorResponse(HttpURLConnection http) throws IOException {
+        InputStream errorStream = http.getErrorStream();
+        Gson gson = new Gson();
+
+        if (errorStream != null) {
+            try (InputStreamReader reader = new InputStreamReader(errorStream);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+                StringBuilder errorBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    errorBuilder.append(line);
+                }
+                Response response = gson.fromJson(errorBuilder.toString(), Response.class);
+                return response.getMessage();
+            }
+        }
+        return "Unknown error";
     }
 
     private static <T> T readBody(HttpURLConnection http, Class<T> responseClass) throws IOException {

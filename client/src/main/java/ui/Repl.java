@@ -3,7 +3,6 @@ package ui;
 import java.util.*;
 
 import client.ChessClient;
-import model.AuthData;
 
 public class Repl {
     private final Scanner scanner = new Scanner(System.in);
@@ -33,6 +32,7 @@ public class Repl {
             }
         }
         System.out.println();
+        System.exit(0);
     }
 
     private void introduceGame() {

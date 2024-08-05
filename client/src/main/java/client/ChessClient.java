@@ -1,6 +1,5 @@
 package client;
 
-import chess.ChessGame;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
@@ -35,8 +34,8 @@ public class ChessClient {
                 case "register" -> register(params);
                 case "login" -> login(params);
                 case "logout" -> logout();
-                case "create" -> create(params);
-//                case "list" -> list();
+                case "create" -> createGame(params);
+//                case "list" -> listGames();
 //                case "join" -> join();
 //                case "observe" -> observe();
                 case "quit" -> "quit";
@@ -90,7 +89,7 @@ public class ChessClient {
         }
     }
 
-    public String create(String... params) throws ResponseException {
+    public String createGame(String... params) throws ResponseException {
         assertAuthenticated();
         if (params.length == 1) {
             try {
@@ -104,10 +103,11 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <NAME>");
     }
 
-
-//
-//    public String list() throws ResponseException {
+//    public String listGames() throws ResponseException {
 //        assertAuthenticated();
+//        try {
+//
+//        }
 //    }
 //
 //    public String join() throws ResponseException {
