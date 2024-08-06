@@ -63,6 +63,18 @@ public class ServerFacadeTests {
     }
 
     @Test
+    void logout() throws Exception {
+        facade.register(new UserData("username", "password","email"));
+        var authData = facade.login(new UserData("username", "password",null));
+        Assertions.assertDoesNotThrow((()->facade.logout(authData.getAuthToken())));
+    }
+
+    @Test
+    void logoutFailure() throws Exception {
+        Assertions.assertThrows(ResponseException.class, () -> facade.logout("dummy data"));
+    }
+
+    @Test
     void createGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
         Assertions.assertDoesNotThrow(() -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
@@ -71,7 +83,7 @@ public class ServerFacadeTests {
     @Test
     void createGameFailure() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
-        Assertions.assertDoesNotThrow(() -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
+        facade.createGame(authData.getAuthToken(), new GameData("new game"));
         Assertions.assertThrows(ResponseException.class, () -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
     }
 
@@ -106,7 +118,7 @@ public class ServerFacadeTests {
         facade.createGame(authData.getAuthToken(), new GameData("new game"));
         facade.createGame(authData.getAuthToken(), new GameData("new game 2"));
         facade.listGames(authData.getAuthToken());
-        Assertions.assertDoesNotThrow(() -> facade.listGames("bad token"));
+        Assertions.assertThrows(ResponseException.class, () -> facade.listGames("bad token"));
     }
 
 }
