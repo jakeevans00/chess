@@ -47,30 +47,26 @@ public class BoardPrinter {
     }
 
     private String getPiece(int row, int col) {
-        // Place black pieces
         if (row == 0) {
-            return getColumnPiece(col);
+            return getColumnPiece(col, true); // Get black pieces
         } else if (row == 1) {
             return BLACK_PAWN; // Black pawns
-        }
-
-        // Place white pieces
-        if (row == 6) {
+        } else if (row == 6) {
             return WHITE_PAWN; // White pawns
         } else if (row == 7) {
-            return getColumnPiece(col);
+            return getColumnPiece(col, false); // Get white pieces
         }
 
         return null; // Empty square
     }
 
-    public String getColumnPiece(int col) {
+    public String getColumnPiece(int col, boolean isBlack) {
         return switch (col) {
-            case 0, 7 -> WHITE_ROOK;
-            case 1, 6 -> WHITE_KNIGHT;
-            case 2, 5 -> WHITE_BISHOP;
-            case 3 -> WHITE_QUEEN;
-            case 4 -> WHITE_KING;
+            case 0, 7 -> isBlack ? BLACK_ROOK : WHITE_ROOK;
+            case 1, 6 -> isBlack ? BLACK_KNIGHT : WHITE_KNIGHT;
+            case 2, 5 -> isBlack ? BLACK_BISHOP : WHITE_BISHOP;
+            case 3 -> isBlack ? BLACK_QUEEN : WHITE_QUEEN;
+            case 4 -> isBlack ? BLACK_KING : WHITE_KING;
             default -> EMPTY_SQUARE;
         };
     }
