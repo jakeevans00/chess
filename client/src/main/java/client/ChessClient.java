@@ -7,6 +7,7 @@ import model.GameData;
 import model.UserData;
 import server.ServerFacade;
 import server.request.JoinGameRequest;
+import server.response.CreateGameResponse;
 import server.response.ListGamesResponse;
 import server.response.LoginResponse;
 import server.response.RegisterResponse;
@@ -101,7 +102,7 @@ public class ChessClient {
         if (params.length == 1) {
             try {
                 String gameName = params[0];
-                server.createGame(auth.authToken(), new GameData(gameName));
+                CreateGameResponse createGameResponse = server.createGame(auth.authToken(), new GameData(gameName));
                 return "Successfully created game " + gameName;
             } catch (Exception e) {
                 return e.getMessage();
@@ -138,17 +139,18 @@ public class ChessClient {
                 GameData selected = listedGames.get(Integer.parseInt(params[0]));
                 ChessGame.TeamColor color = ChessGame.TeamColor.fromString(params[1]);
                 JoinGameRequest request = new JoinGameRequest(color, selected.gameID());
-                System.out.println(selected.gameID() + " " + selected.gameName());
 
                 server.joinGame(auth.authToken(), request);
-                try (PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8)){
+                try {
+                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
                     BoardPrinter boardPrinter = new BoardPrinter(printStream);
                     boardPrinter.drawBoard();
+                    return "Successfully joined game ";
+                } catch (Exception e) {
+                    return e.getMessage();
                 }
-
-                return "";
-
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 return e.getMessage();
             }
         }
@@ -160,14 +162,15 @@ public class ChessClient {
         if (params.length == 1) {
             try {
                 GameData selected = listedGames.get(Integer.parseInt(params[0]));
-                ChessGame game = selected.game();
 
-                try (PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8)){
+                try {
+                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
                     BoardPrinter boardPrinter = new BoardPrinter(printStream);
                     boardPrinter.drawBoard();
+                } catch (Exception e) {
+                    return e.getMessage();
                 }
-
-                return "";
+                return "Observing game: " + params[0];
             } catch (Exception e) {
                 return e.getMessage();
             }

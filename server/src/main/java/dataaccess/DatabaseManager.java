@@ -98,7 +98,7 @@ public class DatabaseManager {
                         case Integer p -> ps.setInt(i + 1, p);
                         case GameData p -> ps.setString(i + 1, p.toString());
                         case null -> ps.setString(i + 1, null);
-                        default -> System.out.println("sup");
+                        default -> {}
                     }
                 }
                 ps.executeUpdate();
@@ -111,7 +111,6 @@ public class DatabaseManager {
                 return 0;
             }
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
             throw new DataAccessException(ex.getMessage());
         }
     }
@@ -123,7 +122,6 @@ public class DatabaseManager {
                 try(var ps = conn.prepareStatement(sql)) {
                     ps.executeUpdate();
                 } catch (SQLException ex) {
-                    System.out.println(ex.getMessage());
                 }
             }
         }

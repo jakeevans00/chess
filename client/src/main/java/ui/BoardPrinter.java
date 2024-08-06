@@ -8,38 +8,43 @@ public class BoardPrinter {
 
     private static final int BOARD_SIZE = 8;
     private static final String EMPTY_SQUARE = "   ";
-    private static final String BLACK_PIECE = " ♟ "; // Black pawn
-    private static final String WHITE_PIECE = " ♙ "; // White pawn
 
-    private PrintStream out;
+    private final PrintStream out;
 
     public BoardPrinter(PrintStream out) {
         this.out = out;
     }
 
-    public String drawBoard() {
-        out.print(ERASE_SCREEN);
-        drawChessBoard(out);
-
-        return "";
+    public void drawBoard() {
+        try {
+            out.print(ERASE_SCREEN);
+            drawChessBoard(out);
+            out.flush();
+        } catch (Exception e) {
+            System.err.println("Error while drawing the board: " + e.getMessage());
+        }
     }
 
     private void drawChessBoard(PrintStream out) {
+        out.print("  ");
+        for (char letter = 'a'; letter <= 'h'; letter++) {
+            out.print(" " + letter + " ");
+        }
+        out.println();
+
         for (int row = 0; row < BOARD_SIZE; row++) {
+            out.print((BOARD_SIZE - row) + " ");
+
             for (int col = 0; col < BOARD_SIZE; col++) {
                 if ((row + col) % 2 == 0) {
-                    // Light square
                     setWhite(out);
                 } else {
-                    // Dark square
                     setBlack(out);
                 }
 
-                // Print the pieces
                 String piece = getPiece(row, col);
                 out.print(piece != null ? piece : EMPTY_SQUARE);
 
-                // Reset to default after printing each square
                 resetColors(out);
             }
             out.println();
@@ -48,16 +53,16 @@ public class BoardPrinter {
 
     private String getPiece(int row, int col) {
         if (row == 0) {
-            return getColumnPiece(col, true); // Get black pieces
+            return getColumnPiece(col, true);
         } else if (row == 1) {
-            return BLACK_PAWN; // Black pawns
+            return BLACK_PAWN;
         } else if (row == 6) {
-            return WHITE_PAWN; // White pawns
+            return WHITE_PAWN;
         } else if (row == 7) {
-            return getColumnPiece(col, false); // Get white pieces
+            return getColumnPiece(col, false);
         }
 
-        return null; // Empty square
+        return null;
     }
 
     public String getColumnPiece(int col, boolean isBlack) {
@@ -73,18 +78,17 @@ public class BoardPrinter {
 
 
     private void setWhite(PrintStream out) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_BLACK);
+        out.print(SET_BG_COLOR_BLACK);
+        out.print(SET_TEXT_COLOR_YELLOW);
     }
 
     private void setBlack(PrintStream out) {
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_WHITE);
+        out.print(SET_BG_COLOR_WHITE);
+        out.print(SET_TEXT_COLOR_YELLOW);
     }
 
     private void resetColors(PrintStream out) {
-        // Reset the background and text colors to default
-        out.print(RESET_BG_COLOR); // Replace with the default background color
-        out.print(RESET_TEXT_COLOR); // Replace with the default text color
+        out.print(RESET_BG_COLOR);
+        out.print(RESET_TEXT_COLOR);
     }
 }

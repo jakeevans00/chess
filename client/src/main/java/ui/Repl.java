@@ -8,6 +8,7 @@ public class Repl {
     private final Scanner scanner = new Scanner(System.in);
     private final ChessClient client;
 
+
     public Repl(int port) {
         client = new ChessClient(port);
     }
