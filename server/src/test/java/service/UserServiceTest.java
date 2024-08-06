@@ -2,13 +2,12 @@ package service;
 
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
-import datastore.DataStore;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import response.LoginResponse;
-import response.RegisterResponse;
+import server.response.LoginResponse;
+import server.response.RegisterResponse;
 import service.exceptions.InvalidCredentialsException;
 import service.exceptions.MalformedRequestException;
 

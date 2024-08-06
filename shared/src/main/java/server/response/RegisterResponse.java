@@ -1,4 +1,4 @@
-package response;
+package server.response;
 
 public class RegisterResponse extends LoginResponse {
     public RegisterResponse(String username, String authToken) {

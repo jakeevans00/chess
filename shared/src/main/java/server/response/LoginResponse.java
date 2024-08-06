@@ -1,4 +1,4 @@
-package response;
+package server.response;
 
 public class LoginResponse extends Response {
     private String username;

@@ -1,7 +1,7 @@
 package handler;
 
 import model.UserData;
-import response.LoginResponse;
+import server.response.LoginResponse;
 import service.UserService;
 import spark.Request;
 import spark.Response;

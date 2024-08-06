@@ -2,13 +2,12 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.*;
-import datastore.DataStore;
 import model.AuthData;
 import model.GameData;
-import request.JoinGameRequest;
-import response.CreateGameResponse;
-import response.JoinGameResponse;
-import response.ListGamesResponse;
+import server.request.JoinGameRequest;
+import server.response.CreateGameResponse;
+import server.response.JoinGameResponse;
+import server.response.ListGamesResponse;
 import service.exceptions.ExistingUserException;
 import service.exceptions.ForbiddenActionException;
 import service.exceptions.MalformedRequestException;

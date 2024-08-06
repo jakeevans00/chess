@@ -2,6 +2,7 @@ package server;
 
 import dataaccess.*;
 import handler.*;
+import server.response.Response;
 import spark.*;
 
 import java.nio.file.Files;
@@ -38,7 +39,7 @@ public class Server {
                     !path.equals("/db")) {
                 String authToken = request.headers("authorization");
                 if (authToken == null || authDAO.getAuth(authToken) == null) {
-                    response.Response authResponse = new response.Response("Error: Not Authenticated");
+                    Response authResponse = new Response("Error: Not Authenticated");
                     Spark.halt(401, Serializer.serialize(authResponse));
                 }
             }

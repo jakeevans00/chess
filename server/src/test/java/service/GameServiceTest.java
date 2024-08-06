@@ -3,19 +3,17 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
-import datastore.DataStore;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import request.JoinGameRequest;
-import response.CreateGameResponse;
-import response.LoginResponse;
+import server.request.JoinGameRequest;
+import server.response.CreateGameResponse;
+import server.response.LoginResponse;
 import service.exceptions.ExistingUserException;
 import service.exceptions.MalformedRequestException;
 
-import javax.xml.crypto.Data;
 import java.sql.SQLException;
 
 public class GameServiceTest {

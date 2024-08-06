@@ -1,4 +1,4 @@
-package response;
+package server.response;
 
 public class CreateGameResponse extends Response {
     private int gameID;

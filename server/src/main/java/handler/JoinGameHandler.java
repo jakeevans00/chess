@@ -1,8 +1,6 @@
 package handler;
 
-import model.AuthData;
-import model.GameData;
-import request.JoinGameRequest;
+import server.request.JoinGameRequest;
 import service.GameService;
 import spark.Request;
 import spark.Response;

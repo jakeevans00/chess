@@ -1,6 +1,5 @@
 package handler;
 
-import response.ListGamesResponse;
 import service.GameService;
 import spark.Request;
 import spark.Response;

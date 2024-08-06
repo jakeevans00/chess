@@ -6,8 +6,8 @@ import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
 import model.UserData;
-import request.JoinGameRequest;
-import response.*;
+import server.request.JoinGameRequest;
+import server.response.*;
 import utilities.ChessPositionAdapter;
 
 import java.io.*;

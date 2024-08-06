@@ -2,7 +2,7 @@ package handler;
 
 
 import model.UserData;
-import response.RegisterResponse;
+import server.response.RegisterResponse;
 import service.UserService;
 import spark.Request;
 import spark.Response;

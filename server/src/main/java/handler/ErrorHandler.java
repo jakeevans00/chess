@@ -8,7 +8,7 @@ import spark.Response;
 
 public class ErrorHandler {
     public static String handleException(Exception e, Response response) {
-        response.Response errorResponse = new response.Response();
+        server.response.Response errorResponse = new server.response.Response();
 
         switch (e) {
             case MalformedRequestException malformedRequestException -> response.status(400);

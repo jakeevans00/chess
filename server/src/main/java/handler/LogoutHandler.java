@@ -1,7 +1,6 @@
 package handler;
 
-import model.AuthData;
-import response.LogoutResponse;
+import server.response.LogoutResponse;
 import service.UserService;
 import spark.Request;
 import spark.Response;
