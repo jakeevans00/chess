@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
 import model.UserData;
+import request.JoinGameRequest;
 import response.*;
 import utilities.ChessPositionAdapter;
 
@@ -46,23 +47,10 @@ public class ServerFacade {
         return this.makeRequest("GET", path, token, null, ListGamesResponse.class);
     }
 
-    public JoinGameResponse joinGame(String token, GameData game) throws ResponseException {
+    public void joinGame(String token, JoinGameRequest request) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("POST", path, token, game, JoinGameResponse.class);
+        this.makeRequest("PUT", path, token, request, JoinGameResponse.class);
     }
-//
-//    public void deleteAllPets() throws ResponseException {
-//        var path = "/pet";
-//        this.makeRequest("DELETE", path, null, null);
-//    }
-//
-//    public Pet[] listPets() throws ResponseException {
-//        var path = "/pet";
-//        record listPetResponse(Pet[] pet) {
-//        }
-//        var response = this.makeRequest("GET", path, null, listPetResponse.class);
-//        return response.pet();
-//    }
 
     private <T> T makeRequest(String method, String path, String authToken, Object request, Class<T> responseClass) throws ResponseException {
         try {

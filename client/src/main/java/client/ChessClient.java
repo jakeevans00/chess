@@ -1,15 +1,20 @@
 package client;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import request.JoinGameRequest;
 import response.ListGamesResponse;
 import response.LoginResponse;
 import response.RegisterResponse;
 import server.ServerFacade;
+import ui.BoardPrinter;
 import ui.EscapeSequences;
 
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,8 +43,8 @@ public class ChessClient {
                 case "logout" -> logout();
                 case "create" -> createGame(params);
                 case "list" -> listGames();
-//                case "join" -> join();
-//                case "observe" -> observe();
+                case "join" -> joinGame(params);
+                case "observe" -> observeGame(params);
                 case "quit" -> "quit";
                 default -> "Invalid command, try typing help";
             };
@@ -125,14 +130,45 @@ public class ChessClient {
             return e.getMessage();
         }
     }
-//
-//    public String join() throws ResponseException {
-//        assertAuthenticated();
-//    }
-//
-//    public String observe() throws ResponseException {
-//        assertAuthenticated();
-//    }
+
+    public String joinGame(String... params) throws ResponseException {
+        assertAuthenticated();
+        if (params.length == 2) {
+            try {
+                GameData selected = listedGames.get(Integer.parseInt(params[0]));
+                ChessGame.TeamColor color = ChessGame.TeamColor.fromString(params[1]);
+                JoinGameRequest request = new JoinGameRequest(color, selected.gameID());
+                System.out.println(selected.gameID() + " " + selected.gameName());
+
+                server.joinGame(auth.authToken(), request);
+                return "Successfully joined game " + selected.gameID();
+
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <GAME_ID> <PLAYER_COLOR>");
+    }
+
+    public String observeGame(String... params) throws ResponseException {
+        assertAuthenticated();
+        if (params.length == 1) {
+            try {
+                GameData selected = listedGames.get(Integer.parseInt(params[0]));
+                ChessGame game = selected.game();
+
+                try (PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8)){
+                    BoardPrinter boardPrinter = new BoardPrinter(printStream);
+                    boardPrinter.drawBoard();
+                }
+
+                return game.toString();
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <GAME_ID>");
+    }
 
     public void showUser() {
         if (state == State.LOGGED_IN) {

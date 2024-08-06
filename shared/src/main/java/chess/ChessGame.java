@@ -24,8 +24,19 @@ public class ChessGame {
      */
     public enum TeamColor {
         WHITE,
-        BLACK
-    }
+        BLACK;
+
+        public static TeamColor fromString(String colorString) {
+            if (colorString == null) {
+                throw new IllegalArgumentException("Color string cannot be null");
+            }
+            return switch (colorString.toUpperCase()) {
+                case "BLACK" -> BLACK;
+                case "WHITE" -> WHITE;
+                default -> throw new IllegalArgumentException("Invalid color: " + colorString);
+            };
+        }
+        }
 
     public static TeamColor getOppositeColor (TeamColor color) {
         return TeamColor.BLACK == color ? TeamColor.WHITE : TeamColor.BLACK;
