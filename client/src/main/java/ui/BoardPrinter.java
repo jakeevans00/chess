@@ -17,9 +17,11 @@ public class BoardPrinter {
         this.out = out;
     }
 
-    public void drawBoard() {
+    public String drawBoard() {
         out.print(ERASE_SCREEN);
         drawChessBoard(out);
+
+        return "";
     }
 
     private void drawChessBoard(PrintStream out) {

@@ -1,10 +1,13 @@
 package client;
 
+import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import exception.ResponseException;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import request.JoinGameRequest;
 import server.Server;
 import server.ServerFacade;
 
@@ -62,28 +65,30 @@ public class ServerFacadeTests {
     @Test
     void createGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
-        facade.logout(authData.getAuthToken());
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout(authData.getAuthToken()));
+        Assertions.assertDoesNotThrow(() -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
     }
 
     @Test
     void createGameFailure() throws Exception {
-        var authData = facade.register(new UserData("username", "password", "email"));
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout("bad token"));
+        var authData = facade.register(new UserData("username", "password","email"));
+        Assertions.assertDoesNotThrow(() -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
+        Assertions.assertThrows(ResponseException.class, () -> facade.createGame(authData.getAuthToken(), new GameData("new game")));
     }
 
     @Test
     void joinGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
-        facade.logout(authData.getAuthToken());
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout(authData.getAuthToken()));
+        facade.createGame(authData.getAuthToken(), new GameData("new game"));
+        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
     }
 
     @Test
     void joinGameFailure() throws Exception {
-        var authData = facade.register(new UserData("username", "password", "email"));
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout("bad token"));
+        var authData = facade.register(new UserData("username", "password","email"));
+        facade.createGame(authData.getAuthToken(), new GameData("new game"));
+        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
     }
+
     @Test
     void listGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));

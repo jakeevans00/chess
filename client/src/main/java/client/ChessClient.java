@@ -141,7 +141,12 @@ public class ChessClient {
                 System.out.println(selected.gameID() + " " + selected.gameName());
 
                 server.joinGame(auth.authToken(), request);
-                return "Successfully joined game " + selected.gameID();
+                try (PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8)){
+                    BoardPrinter boardPrinter = new BoardPrinter(printStream);
+                    boardPrinter.drawBoard();
+                }
+
+                return "";
 
             } catch (Exception e) {
                 return e.getMessage();
