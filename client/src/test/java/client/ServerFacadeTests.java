@@ -79,27 +79,34 @@ public class ServerFacadeTests {
     void joinGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
         facade.createGame(authData.getAuthToken(), new GameData("new game"));
-        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
+        Assertions.assertThrows(ResponseException.class,
+                () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
     }
 
     @Test
     void joinGameFailure() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
         facade.createGame(authData.getAuthToken(), new GameData("new game"));
-        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
+        Assertions.assertThrows(ResponseException.class,
+                () -> facade.joinGame(authData.getAuthToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 1)));
     }
 
     @Test
     void listGame() throws Exception {
         var authData = facade.register(new UserData("username", "password","email"));
-        facade.logout(authData.getAuthToken());
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout(authData.getAuthToken()));
+        facade.createGame(authData.getAuthToken(), new GameData("new game"));
+        facade.createGame(authData.getAuthToken(), new GameData("new game 2"));
+        facade.listGames(authData.getAuthToken());
+        Assertions.assertDoesNotThrow(() -> facade.listGames(authData.getAuthToken()));
     }
 
     @Test
     void listGamesFailure() throws Exception {
-        var authData = facade.register(new UserData("username", "password", "email"));
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout("bad token"));
+        var authData = facade.register(new UserData("username", "password","email"));
+        facade.createGame(authData.getAuthToken(), new GameData("new game"));
+        facade.createGame(authData.getAuthToken(), new GameData("new game 2"));
+        facade.listGames(authData.getAuthToken());
+        Assertions.assertDoesNotThrow(() -> facade.listGames("bad token"));
     }
 
 }

@@ -19,8 +19,8 @@ public class ServerFacade {
     private final String serverUrl;
 
     public ServerFacade(int port) {
-        String BASE_URL = "http://localhost:";
-        this.serverUrl = BASE_URL + port;
+        String baseUrl = "http://localhost:";
+        this.serverUrl = baseUrl + port;
     }
 
     public RegisterResponse register(UserData user) throws ResponseException {
