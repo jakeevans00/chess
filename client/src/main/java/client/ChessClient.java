@@ -5,11 +5,11 @@ import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import server.ServerFacade;
 import server.request.JoinGameRequest;
 import server.response.ListGamesResponse;
 import server.response.LoginResponse;
 import server.response.RegisterResponse;
-import server.ServerFacade;
 import ui.BoardPrinter;
 import ui.EscapeSequences;
 

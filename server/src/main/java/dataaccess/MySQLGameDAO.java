@@ -6,7 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import handler.Serializer;
 import model.GameData;
-import utilities.ChessPositionAdapter;
+import server.utilities.ChessPositionAdapter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

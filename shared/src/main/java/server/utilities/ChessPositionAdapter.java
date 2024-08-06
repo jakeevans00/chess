@@ -1,4 +1,4 @@
-package utilities;
+package server.utilities;
 
 import chess.ChessPosition;
 import com.google.gson.TypeAdapter;

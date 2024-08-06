@@ -8,7 +8,7 @@ import model.GameData;
 import model.UserData;
 import server.request.JoinGameRequest;
 import server.response.*;
-import utilities.ChessPositionAdapter;
+import server.utilities.ChessPositionAdapter;
 
 import java.io.*;
 import java.net.HttpURLConnection;
