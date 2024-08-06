@@ -25,13 +25,16 @@ public class Repl {
                 result = client.eval(line);
                 System.out.printf(result);
                 System.out.println();
-                client.showUser();
+                if (!line.equals("quit")) {
+                    client.showUser();
+                }
             } catch (Throwable e) {
 
                 var msg = e.toString();
                 System.out.print(msg);
             }
         }
+
         System.out.println();
         System.exit(0);
     }

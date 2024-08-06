@@ -98,7 +98,7 @@ public class DatabaseManager {
                         case Integer p -> ps.setInt(i + 1, p);
                         case GameData p -> ps.setString(i + 1, p.toString());
                         case null -> ps.setString(i + 1, null);
-                        default -> {}
+                        default -> System.out.println("sup");
                     }
                 }
                 ps.executeUpdate();
