@@ -25,8 +25,8 @@ public class ChessClient {
     private AuthData auth;
     private State state = State.LOGGED_OUT;
 
-    public ChessClient(String serverUrl) {
-        server = new ServerFacade(serverUrl);
+    public ChessClient(int port) {
+        server = new ServerFacade(port);
     }
 
     public String eval(String input) {
@@ -162,7 +162,7 @@ public class ChessClient {
                     boardPrinter.drawBoard();
                 }
 
-                return game.toString();
+                return "";
             } catch (Exception e) {
                 return e.getMessage();
             }

@@ -18,8 +18,9 @@ import java.net.URL;
 public class ServerFacade {
     private final String serverUrl;
 
-    public ServerFacade(String serverUrl) {
-        this.serverUrl = serverUrl;
+    public ServerFacade(int port) {
+        String BASE_URL = "http://localhost:";
+        this.serverUrl = BASE_URL + port;
     }
 
     public RegisterResponse register(UserData user) throws ResponseException {
