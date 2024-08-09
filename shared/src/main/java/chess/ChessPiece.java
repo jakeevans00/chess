@@ -28,7 +28,7 @@ public class ChessPiece {
 
 
     public String toString() {
-        return pieceType.toString() + " " + teamColor.toString();
+        return teamColor.toString() + "_" + pieceType.toString();
     }
 
     /**

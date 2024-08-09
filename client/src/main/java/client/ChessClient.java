@@ -143,8 +143,8 @@ public class ChessClient {
                 server.joinGame(auth.authToken(), request);
                 try {
                     PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-                    BoardPrinter boardPrinter = new BoardPrinter(printStream);
-                    boardPrinter.drawBoard();
+                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
+                    boardPrinter.drawBoard(color);
                     return "Successfully joined game ";
                 } catch (Exception e) {
                     return e.getMessage();
@@ -162,11 +162,12 @@ public class ChessClient {
         if (params.length == 1) {
             try {
                 GameData selected = listedGames.get(Integer.parseInt(params[0]));
+                System.out.println(selected.game().getBoard().toString());
 
                 try {
                     PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-                    BoardPrinter boardPrinter = new BoardPrinter(printStream);
-                    boardPrinter.drawBoard();
+                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
+                    boardPrinter.drawBoard(ChessGame.TeamColor.WHITE);
                 } catch (Exception e) {
                     return e.getMessage();
                 }
