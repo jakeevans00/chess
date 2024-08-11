@@ -9,6 +9,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Server {
+    private final WebSocketHandler webSocketHandler;
+
+    Server() {
+        this.webSocketHandler = new WebSocketHandler();
+    }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -16,6 +21,7 @@ public class Server {
         Spark.staticFiles.location("web");
 
         configureDatabase();
+        Spark.webSocket("/ws", webSocketHandler);
         createRoutes();
 
         Spark.awaitInitialization();
