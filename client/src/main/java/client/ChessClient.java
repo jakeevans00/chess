@@ -13,21 +13,29 @@ import server.response.LoginResponse;
 import server.response.RegisterResponse;
 import ui.BoardPrinter;
 import ui.EscapeSequences;
+import websocket.ServerMessageHandler;
+import websocket.WebSocketFacade;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ChessClient {
     private final ServerFacade server;
+    private WebSocketFacade ws;
+    private final ServerMessageHandler serverMessageHandler;
+    private final String serverUrl = "http://localhost:8080";
+
     private final Map<Integer, GameData> listedGames = new LinkedHashMap<>();
     private AuthData auth;
     private State state = State.LOGGED_OUT;
 
-    public ChessClient(int port) {
+    public ChessClient(int port, ServerMessageHandler serverMessageHandler) {
         server = new ServerFacade(port);
+        this.serverMessageHandler = serverMessageHandler;
     }
 
     public String eval(String input) {
@@ -39,20 +47,31 @@ public class ChessClient {
 
             return switch (cmd) {
                 case "help" -> displayOptions();
+
                 case "register" -> register(params);
                 case "login" -> login(params);
-                case "logout" -> logout();
+                case "quit" -> "Goodbye!";
+
                 case "create" -> createGame(params);
                 case "list" -> listGames();
                 case "join" -> joinGame(params);
                 case "observe" -> observeGame(params);
-                case "quit" -> "Goodbye!";
+                case "logout" -> logout();
+
+                case "move" -> makeMove(params);
+                case "leave" -> leaveGame();
+                case "redraw" -> redraw();
+                case "resign" -> resign();
+                case "highlight" -> highlightMoves();
+
                 default -> "Invalid command, try typing 'help'";
             };
         } catch (Exception e) {
             return e.getMessage();
         }
     }
+
+
 
     public String register(String... params) throws ResponseException {
         if (params.length >= 2) {
@@ -161,6 +180,7 @@ public class ChessClient {
         assertAuthenticated();
         if (params.length == 1) {
             try {
+                ws = new WebSocketFacade(serverUrl, serverMessageHandler);
                 GameData selected = listedGames.get(Integer.parseInt(params[0]));
                 System.out.println(selected.game().getBoard().toString());
 
@@ -179,6 +199,31 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <GAME_ID>");
     }
 
+    private String highlightMoves() throws ResponseException {
+        assertPlayingOrObserving();
+        return "resign";
+    }
+
+    private String resign() throws ResponseException {
+        assertPlaying();
+        return "resign";
+    }
+
+    private String redraw() throws ResponseException {
+        assertPlayingOrObserving();
+        return "redraw";
+    }
+
+    private String leaveGame() throws ResponseException {
+        assertPlayingOrObserving();
+        return "leave";
+    }
+
+    private String makeMove(String... params) throws ResponseException {
+        assertPlaying();
+        return "";
+    }
+
     public void showUser() {
         if (state == State.LOGGED_IN) {
             System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED IN - " +
@@ -194,20 +239,36 @@ public class ChessClient {
         }
     }
 
-    private String displayOptions() {
-        StringBuilder result = new StringBuilder();
-
-        if (state == State.LOGGED_IN) {
-            AUTHENTICATED_COMMANDS.forEach((cmd, desc) ->
-                    result.append("\t" + EscapeSequences.SET_TEXT_COLOR_BLUE).append(cmd)
-                          .append(EscapeSequences.SET_TEXT_COLOR_MAGENTA).append(desc).append("\n"));
-        } else {
-            UNAUTHENTICATED_COMMANDS.forEach((cmd, desc) ->
-                    result.append("\t" + EscapeSequences.SET_TEXT_COLOR_BLUE).append(cmd)
-                          .append(EscapeSequences.SET_TEXT_COLOR_MAGENTA).append(desc).append("\n"));
+    private void assertPlayingOrObserving() throws ResponseException {
+        assertAuthenticated();
+        if (state != State.PLAYING && state != State.OBSERVING) {
+            throw new ResponseException(400, "You must be playing/observing a game to run this command");
         }
+    }
 
-        return result.toString();
+    private void assertPlaying() throws ResponseException {
+        assertAuthenticated();
+        if (state != State.PLAYING) {
+            throw new ResponseException(400, "You must be playing a game to run this command");
+        }
+    }
+
+    private String displayOptions() {
+        Map<String, String> commands = switch (state) {
+            case LOGGED_IN -> AUTHENTICATED_COMMANDS;
+            case PLAYING -> {
+                Map<String, String> combined = new LinkedHashMap<>(OBSERVER_COMMANDS);
+                combined.putAll(GAMEPLAY_COMMANDS);
+                yield combined;
+            }
+            case OBSERVING -> OBSERVER_COMMANDS;
+            default -> UNAUTHENTICATED_COMMANDS;
+        };
+
+        return commands.entrySet().stream()
+                .map(e -> "\t" + EscapeSequences.SET_TEXT_COLOR_BLUE + e.getKey() +
+                        EscapeSequences.SET_TEXT_COLOR_MAGENTA + e.getValue() + "\n")
+                .collect(Collectors.joining());
     }
 
     private static final Map<String, String> UNAUTHENTICATED_COMMANDS = new LinkedHashMap<>() {{
@@ -223,6 +284,19 @@ public class ChessClient {
         put("join <ID> [WHITE|BLACK]", " - a game");
         put("observe <ID>", " - a game");
         put("quit", " - playing chess");
+        put("help", " - with possible commands");
+    }};
+
+    private static final Map<String, String> OBSERVER_COMMANDS = new LinkedHashMap<>() {{
+        put("redraw", " - the chess board");
+        put("leave", " - the game");
+        put("highlight <PIECE>", " - legal moves. PIECE notation ('a1')");
+        put("help", " - with possible commands");
+    }};
+
+    private static final Map<String, String> GAMEPLAY_COMMANDS = new LinkedHashMap<>() {{
+        put("move <TO> <FROM>", " - a piece on your turn. TO/FROM notation ('a1 d6')");
+        put("resign", " - from the match");
         put("help", " - with possible commands");
     }};
 }

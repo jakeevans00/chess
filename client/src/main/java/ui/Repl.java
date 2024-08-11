@@ -3,14 +3,17 @@ package ui;
 import java.util.*;
 
 import client.ChessClient;
+import websocket.ServerMessageHandler;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
-public class Repl {
+public class Repl implements ServerMessageHandler {
     private final Scanner scanner = new Scanner(System.in);
     private final ChessClient client;
 
 
     public Repl(int port) {
-        client = new ChessClient(port);
+        client = new ChessClient(port, this);
     }
 
     public void run() {
@@ -42,5 +45,10 @@ public class Repl {
         System.out.printf("\uD83D\uDD25\uD83D\uDD25 Let's play some chess! " +
                 "Type 'help' to get started \uD83D\uDD25\uD83D\uDD25%n" +
                 "[LOGGED OUT] >>> ");
+    }
+
+    @Override
+    public void notify(ServerMessage notification) {
+        System.out.println(notification);
     }
 }
