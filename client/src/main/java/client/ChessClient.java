@@ -47,7 +47,7 @@ public class ChessClient {
                 case "join" -> joinGame(params);
                 case "observe" -> observeGame(params);
                 case "quit" -> "Goodbye!";
-                default -> "Invalid command, try typing help";
+                default -> "Invalid command, try typing 'help'";
             };
         } catch (Exception e) {
             return e.getMessage();

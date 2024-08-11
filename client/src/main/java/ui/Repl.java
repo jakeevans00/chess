@@ -18,7 +18,7 @@ public class Repl {
         Scanner scanner = new Scanner(System.in);
 
         var result = "";
-        while (!result.equals("quit")) {
+        while (!result.equals("Goodbye!")) {
             String line = scanner.nextLine();
 
             try {
@@ -29,13 +29,11 @@ public class Repl {
                     client.showUser();
                 }
             } catch (Throwable e) {
-
                 var msg = e.toString();
                 System.out.print(msg);
             }
         }
 
-        System.out.println();
         System.exit(0);
     }
 

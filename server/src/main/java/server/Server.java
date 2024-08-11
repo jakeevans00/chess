@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 public class Server {
     private final WebSocketHandler webSocketHandler;
 
-    Server() {
+    public Server() {
         this.webSocketHandler = new WebSocketHandler();
     }
 
