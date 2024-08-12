@@ -75,11 +75,15 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         if (!isLegalMove(move)) {
-            throw new InvalidMoveException();
+            throw new InvalidMoveException("Error: Illegal move: " + move);
         }
 
         ChessBoard board = getBoard();
         ChessPiece piece = getBoard().getPiece(move.getStartPosition());
+
+        if (piece.getTeamColor() != getTeamTurn()) {
+            throw new InvalidMoveException("Error: Can't move opponent's piece");
+        }
 
         board.movePiece(move);
 

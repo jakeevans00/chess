@@ -5,6 +5,7 @@ import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.*;
 import exception.ResponseException;
+import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -18,10 +19,7 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @WebSocket
 public class WebSocketHandler {
@@ -68,10 +66,21 @@ public class WebSocketHandler {
 
     private void makeMove(String authToken, int gameId, Session session, ChessMove move) throws IOException, DataAccessException {
         try {
+            AuthData authData = getAuth(authToken);
             GameData gameData = getGame(gameId);
             ChessGame game = gameData.game();
-            if (!game.validMoves(move.getStartPosition()).contains(move.getEndPosition())) {
-                throw new RuntimeException("Invalid move");
+
+            if (!game.validMoves(move.getStartPosition()).contains(move)) {
+                throw new RuntimeException("Error, invalid move");
+            }
+
+            if (game.getTeamTurn() == ChessGame.TeamColor.WHITE && Objects.equals(gameData.blackUsername(), authData.username()) ||
+                game.getTeamTurn() == ChessGame.TeamColor.BLACK && Objects.equals(gameData.whiteUsername(), authData.username())) {
+                throw new RuntimeException("Error, can't move on opponent's turn");
+            }
+
+            if (!authData.username().equals(gameData.blackUsername()) && !authData.username().equals(gameData.whiteUsername())) {
+                throw new RuntimeException("Error, observer cannot make moves");
             }
 
             game.makeMove(move);
@@ -128,6 +137,10 @@ public class WebSocketHandler {
             return gameDAO.getGame(gameId);
         }
         throw new ResponseException(402, "Game not found");
+    }
+
+    private AuthData getAuth (String authToken) throws DataAccessException {
+        return authDAO.getAuth(authToken);
     }
 
 }
