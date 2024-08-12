@@ -169,7 +169,7 @@ public class WebSocketHandler {
 
     private void notifyAll(int gameId, NotificationMessage notification) {
         Set<Session> sessions = connections.get(gameId);
-        if (sessions == null) return;
+        if (sessions == null) { return; }
 
         Iterator<Session> iterator = sessions.iterator();
         while (iterator.hasNext()) {
