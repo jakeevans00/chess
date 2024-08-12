@@ -2,9 +2,9 @@ package handler;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
-import dataaccess.GameDAO;
-import dataaccess.MySQLGameDAO;
+import dataaccess.*;
+import exception.ResponseException;
+import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
@@ -28,6 +28,7 @@ import java.util.Set;
 public class WebSocketHandler {
     private Map<Integer, Set<Session>> connections = new HashMap<>();
     private final GameDAO gameDAO = new MySQLGameDAO();
+    private final AuthDAO authDAO = new MySQLAuthDAO();
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException, SQLException, DataAccessException {
@@ -54,6 +55,8 @@ public class WebSocketHandler {
 
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         try {
+            validateAuth(authToken);
+
             GameData chessGame = gameDAO.getGame(gameId);
             ChessGame game = chessGame.game();
             ServerMessage loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, new GameData("test", game));
@@ -81,6 +84,16 @@ public class WebSocketHandler {
             } else {
                 session.close();
             }
+        }
+    }
+
+    private void validateAuth(String authToken) throws ResponseException {
+        try {
+            if (authDAO.getAuth(authToken) == null) {
+                throw new ResponseException(401, "Bad Auth Token");
+            }
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, "Unable to reach database");
         }
     }
 
