@@ -4,7 +4,7 @@ import chess.ChessGame;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import server.utilities.Serializer;
+import handler.Serializer;
 import model.GameData;
 import server.utilities.ChessPositionAdapter;
 

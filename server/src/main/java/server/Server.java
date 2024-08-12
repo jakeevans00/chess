@@ -3,7 +3,7 @@ package server;
 import dataaccess.*;
 import handler.*;
 import server.response.Response;
-import server.utilities.Serializer;
+import handler.Serializer;
 import spark.*;
 
 import java.nio.file.Files;

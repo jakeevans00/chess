@@ -1,6 +1,5 @@
 package handler;
 
-import server.utilities.Serializer;
 import service.exceptions.ExistingUserException;
 import service.exceptions.ForbiddenActionException;
 import service.exceptions.InvalidCredentialsException;

@@ -2,7 +2,6 @@ package handler;
 
 import model.UserData;
 import server.response.LoginResponse;
-import server.utilities.Serializer;
 import service.UserService;
 import spark.Request;
 import spark.Response;

@@ -3,7 +3,6 @@ package handler;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import datastore.DataStore;
-import server.utilities.Serializer;
 import spark.Request;
 import spark.Response;
 import spark.Route;
