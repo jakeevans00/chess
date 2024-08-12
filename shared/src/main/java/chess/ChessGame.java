@@ -9,7 +9,7 @@ import java.util.*;
  * signature of the existing methods.
  */
 public class ChessGame {
-    ChessGameState state = new ChessGameState();
+    public ChessGameState state = new ChessGameState();
 
     public ChessGame() {
         getBoard().loadBoard(ChessBoard.STANDARD_BOARD);

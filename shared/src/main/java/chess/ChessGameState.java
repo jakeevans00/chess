@@ -3,13 +3,28 @@ package chess;
 public class ChessGameState {
     private ChessGame.TeamColor turn = ChessGame.TeamColor.WHITE;
     private ChessBoard board = new ChessBoard();
+    private Status status;
+
 
     ChessGameState() {
+        this.status  = Status.IN_PROGRESS;
     }
 
     @Override
     public String toString() {
         return "Chess Game: " + turn.toString() + "'s turn, board: " + board.toString();
+    }
+
+    public enum Status {
+            IN_PROGRESS, CHECKMATE, STALEMATE, RESIGNED
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     public ChessBoard getBoard() { return board; }

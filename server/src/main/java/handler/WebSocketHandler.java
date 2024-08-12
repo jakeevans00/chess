@@ -1,6 +1,7 @@
 package handler;
 
 import chess.ChessGame;
+import chess.ChessGameState;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.*;
@@ -37,7 +38,7 @@ public class WebSocketHandler {
                 makeMove(moveCommand.getAuthToken(), moveCommand.getGameID(), session, moveCommand.getMove());
             }
             case LEAVE -> leave();
-            case RESIGN -> resign();
+            case RESIGN -> resign(command.getAuthToken(), command.getGameID(), session);
         }
     }
 
@@ -79,8 +80,10 @@ public class WebSocketHandler {
                 throw new RuntimeException("Error, can't move on opponent's turn");
             }
 
-            if (!authData.username().equals(gameData.blackUsername()) && !authData.username().equals(gameData.whiteUsername())) {
-                throw new RuntimeException("Error, observer cannot make moves");
+            validateNotObserver(authData, gameData);
+
+            if (game.state.getStatus() != ChessGameState.Status.IN_PROGRESS) {
+                throw new RuntimeException("Error: Game over, cannot make moves");
             }
 
             game.makeMove(move);
@@ -97,7 +100,32 @@ public class WebSocketHandler {
     }
 
     private void leave() {}
-    private void resign() {}
+
+
+    private void resign(String authToken, int gameId, Session session) throws IOException {
+        try {
+            AuthData authData = getAuth(authToken);
+            GameData gameData = getGame(gameId);
+            ChessGame game = gameData.game();
+
+            validateNotObserver(authData, gameData);
+
+            if (game.state.getStatus() != ChessGameState.Status.IN_PROGRESS) {
+                throw new RuntimeException("Error: Game over, cannot resign");
+            }
+
+            game.state.setStatus(ChessGameState.Status.RESIGNED);
+            gameDAO.updateGame(gameData);
+
+            NotificationMessage notification =
+                    new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " resigned");
+            notifyAll(gameId, notification);
+
+        } catch (Exception e) {
+            ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
+            session.getRemote().sendString(Serializer.serialize(errorMessage));
+        }
+    }
 
     private void notifyOthers(int gameId, NotificationMessage notification, Session toExclude) throws IOException {
         Set<Session> sessions = connections.get(gameId);
@@ -108,6 +136,15 @@ public class WebSocketHandler {
                 }
             } else {
                 session.close();
+            }
+        }
+    }
+
+    private void notifyAll(int gameId, NotificationMessage notification) throws IOException {
+        Set<Session> sessions = connections.get(gameId);
+        for (Session session : sessions) {
+            if (session.isOpen()) {
+                session.getRemote().sendString(Serializer.serialize(notification));
             }
         }
     }
@@ -141,6 +178,12 @@ public class WebSocketHandler {
 
     private AuthData getAuth (String authToken) throws DataAccessException {
         return authDAO.getAuth(authToken);
+    }
+
+    private void validateNotObserver(AuthData authData, GameData gameData) throws DataAccessException {
+        if (!authData.username().equals(gameData.blackUsername()) && !authData.username().equals(gameData.whiteUsername())) {
+            throw new RuntimeException("Error, observer cannot make moves");
+        }
     }
 
 }
