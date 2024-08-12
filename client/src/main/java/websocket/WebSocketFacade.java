@@ -4,7 +4,7 @@ import chess.ChessBoard;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
-import handler.Serializer;
+import server.utilities.Serializer;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;

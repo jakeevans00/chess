@@ -1,11 +1,9 @@
-package handler;
+package server.utilities;
 
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import server.utilities.ChessPositionAdapter;
 import spark.Request;
-import websocket.messages.ServerMessage;
 
 public class Serializer {
     public static final Gson GSON = new GsonBuilder()

@@ -4,8 +4,6 @@ import java.util.*;
 
 import chess.ChessBoard;
 import client.ChessClient;
-import com.google.gson.Gson;
-import handler.Serializer;
 import websocket.ServerMessageHandler;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;

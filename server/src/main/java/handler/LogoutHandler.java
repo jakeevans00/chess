@@ -1,6 +1,7 @@
 package handler;
 
 import server.response.LogoutResponse;
+import server.utilities.Serializer;
 import service.UserService;
 import spark.Request;
 import spark.Response;

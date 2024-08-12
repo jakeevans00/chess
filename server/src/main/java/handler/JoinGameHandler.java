@@ -1,6 +1,7 @@
 package handler;
 
 import server.request.JoinGameRequest;
+import server.utilities.Serializer;
 import service.GameService;
 import spark.Request;
 import spark.Response;

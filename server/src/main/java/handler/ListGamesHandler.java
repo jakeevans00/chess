@@ -1,5 +1,6 @@
 package handler;
 
+import server.utilities.Serializer;
 import service.GameService;
 import spark.Request;
 import spark.Response;
