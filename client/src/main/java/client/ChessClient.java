@@ -218,7 +218,7 @@ public class ChessClient {
 
                 ChessMove move = new ChessMove(new ChessPosition(fromRow, fromCol), new ChessPosition(toRow, toCol));
                 ws.makeMove(auth.authToken(), listedGames.get(globalGameId).gameID(), move);
-                return "made move";
+                return "";
 
             } catch (Exception e ) {
                 throw new ResponseException(400, e.getMessage());

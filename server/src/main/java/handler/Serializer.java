@@ -1,13 +1,23 @@
 package handler;
 
+import chess.ChessPosition;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import server.utilities.ChessPositionAdapter;
 import spark.Request;
+import websocket.messages.ServerMessage;
 
 public class Serializer {
-    private static final Gson GSON = new Gson();
+    public static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
+            .create();
 
     public static <T> T deserialize(Request request, Class<T> clazz) {
         return GSON.fromJson(request.body(), clazz);
+    }
+
+    public static <T> T fromJson(String message, Class<T> clazz) {
+        return GSON.fromJson(message, clazz);
     }
 
     public static <T> T deserialize(Object object, Class<T> clazz) {

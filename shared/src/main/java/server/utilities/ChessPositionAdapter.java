@@ -1,6 +1,7 @@
 package server.utilities;
 
 import chess.ChessPosition;
+import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -12,6 +13,10 @@ public class ChessPositionAdapter extends TypeAdapter<ChessPosition> {
     @Override
     public ChessPosition read(JsonReader jsonReader) throws IOException {
         String posStr = jsonReader.nextString();
+
+        if (posStr.charAt(0) != '(') {
+            return new Gson().fromJson(posStr, ChessPosition.class);
+        }
 
         posStr = posStr.replace("(", "").replace(")", "").trim();
         String[] parts = posStr.split(",");

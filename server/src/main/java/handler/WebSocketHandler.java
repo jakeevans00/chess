@@ -2,7 +2,6 @@ package handler;
 
 import chess.*;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import dataaccess.*;
 import exception.ResponseException;
 import model.AuthData;
@@ -10,8 +9,6 @@ import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import server.utilities.ChessPositionAdapter;
-import server.utilities.TupleAdapter;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -29,13 +26,10 @@ public class WebSocketHandler {
     private final Map<Integer, Set<Session>> connections = new ConcurrentHashMap<>();
     private final GameDAO gameDAO = new MySQLGameDAO();
     private final AuthDAO authDAO = new MySQLAuthDAO();
-    Gson gson = new GsonBuilder()
-            .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
-            .create();
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException, DataAccessException {
-        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
+        UserGameCommand command = Serializer.fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
             case CONNECT -> connect(command.getAuthToken(), command.getGameID(), session);
             case MAKE_MOVE -> {
@@ -64,12 +58,12 @@ public class WebSocketHandler {
                                         gameData.game().getBoard().getChessPieces(),
                                         getColor(authDAO.getAuth(authToken), gameData));
 
-            session.getRemote().sendString(new Gson().toJson(loadGame));
+            session.getRemote().sendString(Serializer.serialize(loadGame));
             notifyOthers(gameId, notification, session);
 
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
-            session.getRemote().sendString(new Gson().toJson(errorMessage));
+            session.getRemote().sendString(Serializer.serialize(errorMessage));
         }
     }
 
@@ -106,7 +100,7 @@ public class WebSocketHandler {
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
             System.out.println(e.getMessage());
-            session.getRemote().sendString(new Gson().toJson(errorMessage));
+            session.getRemote().sendString(Serializer.serialize(errorMessage));
         }
     }
 
@@ -163,7 +157,7 @@ public class WebSocketHandler {
         for (Session session : sessions) {
             if (session.isOpen()) {
                 if (session != toExclude) {
-                    session.getRemote().sendString(new Gson().toJson(notification));
+                    session.getRemote().sendString(Serializer.serialize(notification));
                 }
             } else {
                 session.close();
@@ -182,7 +176,7 @@ public class WebSocketHandler {
             Session session = iterator.next();
             try {
                 if (session.isOpen()) {
-                    session.getRemote().sendString(new Gson().toJson(notification));
+                    session.getRemote().sendString(Serializer.serialize(notification));
                 } else {
                     iterator.remove();
                 }
@@ -200,7 +194,7 @@ public class WebSocketHandler {
                 new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedBoard, color);
         for (Session session : sessions) {
             if (session.isOpen()) {
-                session.getRemote().sendString(new Gson().toJson(loadGameMessage));
+                session.getRemote().sendString(Serializer.serialize(loadGameMessage));
             }
         }
         cleanupConnections();
@@ -258,7 +252,6 @@ public class WebSocketHandler {
     }
 
     private ChessGame.TeamColor getColor(AuthData authData, GameData gameData) throws DataAccessException {
-        String whiteUsername = gameData.whiteUsername();
         String blackUsername = gameData.blackUsername();
         String authUsername = authData.username();
 

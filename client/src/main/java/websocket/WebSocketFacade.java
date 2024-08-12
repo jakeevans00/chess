@@ -2,11 +2,9 @@ package websocket;
 
 import chess.ChessBoard;
 import chess.ChessMove;
-import chess.ChessPosition;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import exception.ResponseException;
-import server.utilities.ChessPositionAdapter;
+import handler.Serializer;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -23,9 +21,6 @@ public class WebSocketFacade extends Endpoint {
     Session session;
     ServerMessageHandler serverMessageHandler;
     ChessBoard latestBoard;
-    Gson gson = new GsonBuilder()
-            .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
-            .create();
 
     public WebSocketFacade(String url, ServerMessageHandler serverMessageHandler, String authToken) throws ResponseException {
         try {
@@ -40,15 +35,15 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+                    ServerMessage serverMessage = Serializer.fromJson(message, ServerMessage.class);
                     switch (serverMessage.getServerMessageType()) {
                         case LOAD_GAME -> {
-                            LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
+                            LoadGameMessage loadGameMessage = Serializer.fromJson(message, LoadGameMessage.class);
                             latestBoard = new ChessBoard(loadGameMessage.getGameData());
-                            serverMessageHandler.updateBoard(gson.fromJson(message, LoadGameMessage.class));
+                            serverMessageHandler.updateBoard(Serializer.fromJson(message, LoadGameMessage.class));
                         }
-                        case NOTIFICATION -> serverMessageHandler.notify(gson.fromJson(message, NotificationMessage.class));
-                        case ERROR -> serverMessageHandler.notify(gson.fromJson(message, ErrorMessage.class));
+                        case NOTIFICATION -> serverMessageHandler.notify(Serializer.fromJson(message, NotificationMessage.class));
+                        case ERROR -> serverMessageHandler.notify(Serializer.fromJson(message, ErrorMessage.class));
                     }
                 }
             });
