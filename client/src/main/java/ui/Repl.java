@@ -3,7 +3,10 @@ package ui;
 import java.util.*;
 
 import client.ChessClient;
+import com.google.gson.Gson;
+import handler.Serializer;
 import websocket.ServerMessageHandler;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
@@ -49,6 +52,12 @@ public class Repl implements ServerMessageHandler {
 
     @Override
     public void notify(ServerMessage notification) {
-        System.out.println(notification);
+        if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+            System.out.println("in notify");
+        } else if (notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+            System.out.println("game");
+        } else {
+            System.out.println("nothing much");
+        }
     }
 }

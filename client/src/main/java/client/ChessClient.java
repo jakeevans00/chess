@@ -162,7 +162,7 @@ public class ChessClient {
                 server.joinGame(auth.authToken(), request);
                 try {
                     PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
+                    BoardPrinter boardPrinter = new BoardPrinter(selected.game().getBoard());
                     boardPrinter.drawBoard(color);
                     return "Successfully joined game ";
                 } catch (Exception e) {
@@ -180,18 +180,20 @@ public class ChessClient {
         assertAuthenticated();
         if (params.length == 1) {
             try {
-                ws = new WebSocketFacade(serverUrl, serverMessageHandler);
-                GameData selected = listedGames.get(Integer.parseInt(params[0]));
-                System.out.println(selected.game().getBoard().toString());
+                int gameId = listedGames.get(Integer.parseInt(params[0])).gameID();
+                ws = new WebSocketFacade(serverUrl, serverMessageHandler, auth.authToken());
+                ws.observeGame(auth.authToken(), gameId);
+                return "Observing game " + gameId;
 
-                try {
-                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
-                    boardPrinter.drawBoard(ChessGame.TeamColor.WHITE);
-                } catch (Exception e) {
-                    return e.getMessage();
-                }
-                return "Observing game: " + params[0];
+
+//                try {
+//                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+//                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
+//                    boardPrinter.drawBoard(ChessGame.TeamColor.WHITE);
+//                } catch (Exception e) {
+//                    return e.getMessage();
+//                }
+//                return "Observing game: " + params[0];
             } catch (Exception e) {
                 return e.getMessage();
             }

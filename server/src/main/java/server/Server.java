@@ -42,7 +42,8 @@ public class Server {
             if (!path.equals("/") &&
                     !path.equals("/user") &&
                     !(path.equals("/session") && "POST".equals(request.requestMethod())) &&
-                    !path.equals("/db")) {
+                    !path.equals("/db") &&
+                    !path.equals("/ws")) {
                 String authToken = request.headers("authorization");
                 if (authToken == null || authDAO.getAuth(authToken) == null) {
                     Response authResponse = new Response("Error: Not Authenticated");

@@ -7,19 +7,18 @@ import chess.ChessPosition;
 
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 
 import static ui.EscapeSequences.*;
 
 public class BoardPrinter {
+    private final PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
     private static final int BOARD_SIZE = 8;
     private static final String EMPTY_SQUARE = "   ";
     private ChessBoard board;
 
-    private final PrintStream out;
-
-    public BoardPrinter(PrintStream out, ChessBoard board) {
-        this.out = out;
+    public BoardPrinter(ChessBoard board) {
         this.board = board;
     }
 
