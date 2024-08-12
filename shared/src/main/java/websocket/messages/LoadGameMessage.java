@@ -1,16 +1,28 @@
 package websocket.messages;
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.GameData;
 
-public class LoadGameMessage extends ServerMessage {
-    private final GameData game;
+import java.util.Map;
 
-    public LoadGameMessage(ServerMessageType type, GameData game) {
+public class LoadGameMessage extends ServerMessage {
+    private final Map<ChessPosition, ChessPiece> game;
+    private final ChessGame.TeamColor teamColor;
+
+    public LoadGameMessage(ServerMessageType type, Map<ChessPosition, ChessPiece> game, ChessGame.TeamColor teamColor) {
         super(type);
         this.game = game;
+        this.teamColor = teamColor;
     }
 
-    public GameData getGameData() {
+    public Map<ChessPosition, ChessPiece> getGameData() {
         return game;
+    }
+
+    public ChessGame.TeamColor getTeamColor() {
+        return teamColor;
     }
 }

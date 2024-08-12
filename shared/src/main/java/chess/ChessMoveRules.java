@@ -187,7 +187,7 @@ public class ChessMoveRules {
             return moves;
         }
 
-        ChessMove prevMove = board.history.peek().first();
+        ChessMove prevMove = board.history.peek().getFirst();
         if (prevMove == null) {
             return moves;
         }

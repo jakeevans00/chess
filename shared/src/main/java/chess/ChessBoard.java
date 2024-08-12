@@ -15,6 +15,10 @@ public class ChessBoard {
     public ChessBoard() {
     }
 
+    public ChessBoard(Map<ChessPosition, ChessPiece> chessPieces) {
+        this.chessPieces.putAll(chessPieces);
+    }
+
     public ChessBoard(ChessBoard copy) {
         this.chessPieces.putAll(copy.chessPieces);
         this.history = copy.history;
@@ -116,13 +120,13 @@ public class ChessBoard {
         }
 
         Tuple<ChessMove, ChessPiece> change = history.pop();
-        ChessMove move = change.first();
-        ChessPiece removedPiece = change.second();
+        ChessMove move = change.getFirst();
+        ChessPiece removedPiece = change.getSecond();
 
         ChessPiece movedPiece = removePiece(move.getEndPosition());
         movedPiece.decrementMoveCount();
 
-        if (change.first().getPromotionPiece() != null) {
+        if (change.getFirst().getPromotionPiece() != null) {
             movedPiece = new ChessPiece(movedPiece.getTeamColor(), ChessPiece.PieceType.PAWN);
             movedPiece.setMoveCount(5);
         }

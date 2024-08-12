@@ -21,6 +21,11 @@ public class ChessPositionAdapter extends TypeAdapter<ChessPosition> {
 
     @Override
     public void write(JsonWriter jsonWriter, ChessPosition position) throws IOException {
-
+        if (position == null) {
+            jsonWriter.nullValue();
+        } else {
+            jsonWriter.value("(" + position.getRow() + ", " + position.getColumn() + ")");
+        }
     }
+
 }

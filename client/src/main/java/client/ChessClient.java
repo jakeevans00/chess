@@ -31,6 +31,7 @@ public class ChessClient {
 
     private final Map<Integer, GameData> listedGames = new LinkedHashMap<>();
     private AuthData auth;
+    private ChessGame.TeamColor playingAs;
     private State state = State.LOGGED_OUT;
 
     public ChessClient(int port, ServerMessageHandler serverMessageHandler) {
@@ -157,6 +158,8 @@ public class ChessClient {
             try {
                 GameData selected = listedGames.get(Integer.parseInt(params[0]));
                 ChessGame.TeamColor color = ChessGame.TeamColor.fromString(params[1]);
+                playingAs = color;
+
                 JoinGameRequest request = new JoinGameRequest(color, selected.gameID());
 
                 server.joinGame(auth.authToken(), request);
@@ -183,17 +186,10 @@ public class ChessClient {
                 int gameId = listedGames.get(Integer.parseInt(params[0])).gameID();
                 ws = new WebSocketFacade(serverUrl, serverMessageHandler, auth.authToken());
                 ws.observeGame(auth.authToken(), gameId);
+                state = State.OBSERVING;
+
                 return "Observing game " + gameId;
 
-
-//                try {
-//                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-//                    BoardPrinter boardPrinter = new BoardPrinter(printStream, selected.game().getBoard());
-//                    boardPrinter.drawBoard(ChessGame.TeamColor.WHITE);
-//                } catch (Exception e) {
-//                    return e.getMessage();
-//                }
-//                return "Observing game: " + params[0];
             } catch (Exception e) {
                 return e.getMessage();
             }
@@ -213,12 +209,20 @@ public class ChessClient {
 
     private String redraw() throws ResponseException {
         assertPlayingOrObserving();
-        return "redraw";
+
+        if (state == State.OBSERVING) {
+            ws.redrawBoard(ChessGame.TeamColor.WHITE);
+        }
+
+
+        return "";
     }
 
     private String leaveGame() throws ResponseException {
         assertPlayingOrObserving();
-        return "leave";
+        state = State.LOGGED_IN;
+
+        return "Left the game";
     }
 
     private String makeMove(String... params) throws ResponseException {

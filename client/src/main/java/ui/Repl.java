@@ -2,6 +2,7 @@ package ui;
 
 import java.util.*;
 
+import chess.ChessBoard;
 import client.ChessClient;
 import com.google.gson.Gson;
 import handler.Serializer;
@@ -13,6 +14,7 @@ import websocket.messages.ServerMessage;
 public class Repl implements ServerMessageHandler {
     private final Scanner scanner = new Scanner(System.in);
     private final ChessClient client;
+    public ChessBoard board;
 
 
     public Repl(int port) {
@@ -54,10 +56,18 @@ public class Repl implements ServerMessageHandler {
     public void notify(ServerMessage notification) {
         if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
             System.out.println("in notify");
-        } else if (notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-            System.out.println("game");
-        } else {
-            System.out.println("nothing much");
+        }  else {
+            System.out.println("error");
         }
+    }
+
+    @Override
+    public void updateBoard(LoadGameMessage message) {
+        ChessBoard board = new ChessBoard(message.getGameData());
+        BoardPrinter printer = new BoardPrinter(board);
+
+        this.board = board;
+        System.out.println();
+        printer.drawBoard(message.getTeamColor());
     }
 }

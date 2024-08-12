@@ -1,8 +1,17 @@
 package websocket;
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPosition;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
+import server.utilities.ChessPositionAdapter;
+import ui.BoardPrinter;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import javax.websocket.*;
@@ -17,6 +26,10 @@ import java.util.Map;
 public class WebSocketFacade extends Endpoint {
     Session session;
     ServerMessageHandler serverMessageHandler;
+    ChessBoard chessBoard;
+    Gson gson = new GsonBuilder()
+            .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
+            .create();
 
     public WebSocketFacade(String url, ServerMessageHandler serverMessageHandler, String authToken) throws ResponseException {
         try {
@@ -32,7 +45,15 @@ public class WebSocketFacade extends Endpoint {
                 @Override
                 public void onMessage(String message) {
                     ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-                    serverMessageHandler.notify(serverMessage);
+                    switch (serverMessage.getServerMessageType()) {
+                        case LOAD_GAME -> {
+                            LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
+                            chessBoard = new ChessBoard(loadGameMessage.getGameData());
+                            serverMessageHandler.updateBoard(gson.fromJson(message, LoadGameMessage.class));
+                        }
+                        case NOTIFICATION -> serverMessageHandler.notify(gson.fromJson(message, NotificationMessage.class));
+                        case ERROR -> serverMessageHandler.notify(gson.fromJson(message, ErrorMessage.class));
+                    }
                 }
             });
         } catch (URISyntaxException | DeploymentException | IOException e) {
@@ -54,4 +75,8 @@ public class WebSocketFacade extends Endpoint {
 
     public void joinGame(String authToken, int gameId) {}
 
+    public void redrawBoard(ChessGame.TeamColor color) {
+        BoardPrinter boardPrinter = new BoardPrinter(this.chessBoard);
+        boardPrinter.drawBoard(color);
+    }
 }
