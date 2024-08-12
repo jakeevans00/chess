@@ -13,6 +13,7 @@ import org.junit.jupiter.api.*;
 import server.request.JoinGameRequest;
 import server.Server;
 import server.ServerFacade;
+import server.response.AuthResponse;
 import server.response.CreateGameResponse;
 import server.response.RegisterResponse;
 
@@ -23,7 +24,7 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacade facade;
-    RegisterResponse authData;
+    AuthResponse authData;
 
     @BeforeAll
     public static void init() {
@@ -36,7 +37,7 @@ public class ServerFacadeTests {
     @BeforeEach
     public void beforeEach() throws SQLException, DataAccessException, ResponseException {
         DatabaseManager.deleteAllData();
-        authData = new RegisterResponse();
+        authData = new AuthResponse();
         this.authData = facade.register(new UserData("username", "password","email"));
     }
 

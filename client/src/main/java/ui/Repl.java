@@ -14,8 +14,6 @@ import websocket.messages.ServerMessage;
 public class Repl implements ServerMessageHandler {
     private final Scanner scanner = new Scanner(System.in);
     private final ChessClient client;
-    public ChessBoard board;
-
 
     public Repl(int port) {
         client = new ChessClient(port, this);
@@ -66,7 +64,6 @@ public class Repl implements ServerMessageHandler {
         ChessBoard board = new ChessBoard(message.getGameData());
         BoardPrinter printer = new BoardPrinter(board);
 
-        this.board = board;
         System.out.println();
         printer.drawBoard(message.getTeamColor());
     }

@@ -4,6 +4,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
+import server.response.AuthResponse;
 import server.response.LoginResponse;
 import server.response.LogoutResponse;
 import server.response.RegisterResponse;
@@ -22,27 +23,30 @@ public class UserService {
         this.authDAO = new MySQLAuthDAO();
     }
 
-    public RegisterResponse register(UserData user) throws Exception {
+    public AuthResponse register(UserData user) throws Exception {
         validateUser(user);
         UserData newUser = hashUserData(user);
 
         return ServiceUtils.execute(() -> {
             userDAO.createUser(newUser);
             AuthData auth = authDAO.createAuth(new AuthData(newUser.username(), UUID.randomUUID().toString()));
-            return new RegisterResponse(auth.username(), auth.authToken());
+            return new AuthResponse(auth.username(), auth.authToken());
         });
     }
 
-    public LoginResponse login(UserData user) throws Exception {
+    public AuthResponse login(UserData user) throws Exception {
         UserData result = userDAO.getUser(user.username());
 
-        if (result == null || !BCrypt.checkpw(user.password(), result.password())) {
-            throw new InvalidCredentialsException("Error: Unauthorized");
+        if (result == null){
+            throw new InvalidCredentialsException("Error: User does not exist, try 'register'");
+        }
+        if (!BCrypt.checkpw(user.password(), result.password())) {
+            throw new InvalidCredentialsException("Error: Incorrect password, try again");
         }
 
         return ServiceUtils.execute(() -> {
             AuthData auth = authDAO.createAuth(new AuthData(user.username(), UUID.randomUUID().toString()));
-            return new LoginResponse(auth.username(), auth.authToken());
+            return new AuthResponse(auth.username(), auth.authToken());
         });
     }
 

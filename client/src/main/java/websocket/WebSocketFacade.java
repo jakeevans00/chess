@@ -1,13 +1,13 @@
 package websocket;
 
 import chess.ChessBoard;
-import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import server.utilities.ChessPositionAdapter;
-import ui.BoardPrinter;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -18,15 +18,11 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class WebSocketFacade extends Endpoint {
     Session session;
     ServerMessageHandler serverMessageHandler;
-    ChessBoard chessBoard;
+    ChessBoard latestBoard;
     Gson gson = new GsonBuilder()
             .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
             .create();
@@ -48,7 +44,7 @@ public class WebSocketFacade extends Endpoint {
                     switch (serverMessage.getServerMessageType()) {
                         case LOAD_GAME -> {
                             LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
-                            chessBoard = new ChessBoard(loadGameMessage.getGameData());
+                            latestBoard = new ChessBoard(loadGameMessage.getGameData());
                             serverMessageHandler.updateBoard(gson.fromJson(message, LoadGameMessage.class));
                         }
                         case NOTIFICATION -> serverMessageHandler.notify(gson.fromJson(message, NotificationMessage.class));
@@ -69,14 +65,47 @@ public class WebSocketFacade extends Endpoint {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameId);
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("observe in ws facade" + e.getMessage());
         }
     }
 
-    public void joinGame(String authToken, int gameId) {}
+    public void joinGame(String authToken, int gameId) throws IOException {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameId);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new RuntimeException("in join on web socket facade" + e.getMessage());
+        }
+    }
 
-    public void redrawBoard(ChessGame.TeamColor color) {
-        BoardPrinter boardPrinter = new BoardPrinter(this.chessBoard);
-        boardPrinter.drawBoard(color);
+    public void makeMove(String authToken, int gameId, ChessMove move) throws IOException {
+        try {
+            MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameId, move);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new RuntimeException("make move in ws facade" + e.getMessage());
+        }
+    }
+
+    public void resign(String authToken, int gameId) throws IOException {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameId);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new RuntimeException("in resign on web socket facade" + e.getMessage());
+        }
+    }
+
+    public void leave(String authToken, int gameId) throws IOException {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameId);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new RuntimeException("in leave on web socket facade" + e.getMessage());
+        }
+    }
+
+    public ChessBoard getLatestBoard() {
+        return this.latestBoard;
     }
 }

@@ -1,23 +1,22 @@
 package client;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import server.ServerFacade;
 import server.request.JoinGameRequest;
-import server.response.CreateGameResponse;
-import server.response.ListGamesResponse;
-import server.response.LoginResponse;
-import server.response.RegisterResponse;
+import server.response.*;
 import ui.BoardPrinter;
 import ui.EscapeSequences;
 import websocket.ServerMessageHandler;
 import websocket.WebSocketFacade;
 
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,6 +30,7 @@ public class ChessClient {
 
     private final Map<Integer, GameData> listedGames = new LinkedHashMap<>();
     private AuthData auth;
+    private int globalGameId;
     private ChessGame.TeamColor playingAs;
     private State state = State.LOGGED_OUT;
 
@@ -72,57 +72,32 @@ public class ChessClient {
         }
     }
 
-
-
     public String register(String... params) throws ResponseException {
-        if (params.length >= 2) {
-            try {
-                String username = params[0];
-                String password = params[1];
-                String email = params.length > 2 ? params[2] : "";
-
-                RegisterResponse registerResponse = server.register(new UserData(username, password, email));
-                auth = new AuthData(registerResponse.getUsername(), registerResponse.getAuthToken());
-                state = State.LOGGED_IN;
-                return "Successfully registered " + auth.username();
-            } catch (ResponseException e) {
-                return e.getMessage();
-            }
-        }
-        throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD> <EMAIL>");
+        return authenticateUser(true, params);
     }
 
     public String login(String... params) throws ResponseException {
-        if (params.length >= 2) {
-            String username = params[0];
-            String password = params[1];
-
-            LoginResponse loginResponse = server.login(new UserData(username, password, ""));
-            auth = new AuthData(loginResponse.getUsername(), loginResponse.getAuthToken());
-            state = State.LOGGED_IN;
-            return "Successfully logged in " + auth.username();
-        }
-        throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD>");
+        return authenticateUser(false, params);
     }
 
     public String logout() throws ResponseException {
-        assertAuthenticated();
+        assertLoginState();
         try {
             server.logout(auth.authToken());
-            state = State.LOGGED_OUT;
-            auth = null;
+            clearLocalData();
             return "Successfully logged out";
+
         } catch (Exception e) {
             return e.getMessage();
         }
     }
 
     public String createGame(String... params) throws ResponseException {
-        assertAuthenticated();
+        assertLoginState();
         if (params.length == 1) {
             try {
                 String gameName = params[0];
-                CreateGameResponse createGameResponse = server.createGame(auth.authToken(), new GameData(gameName));
+                server.createGame(auth.authToken(), new GameData(gameName));
                 return "Successfully created game " + gameName;
             } catch (Exception e) {
                 return e.getMessage();
@@ -132,20 +107,10 @@ public class ChessClient {
     }
 
     public String listGames() throws ResponseException {
-        assertAuthenticated();
+        assertLoginState();
         try {
-            StringBuilder res = new StringBuilder();
-            res.append(String.format("%-10s %-20s %-15s %-15s%n", "Game ID", "Game Name", "White Player", "Black Player"));
-            res.append("---------------------------------------------------------\n");
-
             ListGamesResponse listGamesResponse = server.listGames(auth.authToken());
-            for (int i = 1; i < listGamesResponse.getGames().size() + 1; i++) {
-                GameData game = listGamesResponse.getGames().get(i - 1);
-                listedGames.put(i,game);
-                res.append(String.format("%-10d %-20s %-15s %-15s%n",
-                        i, game.gameName(), game.whiteUsername(), game.blackUsername()));
-            }
-            return res.toString();
+            return formatGameList(listGamesResponse);
 
         } catch (Exception e) {
             return e.getMessage();
@@ -153,24 +118,18 @@ public class ChessClient {
     }
 
     public String joinGame(String... params) throws ResponseException {
-        assertAuthenticated();
+        assertLoginState();
         if (params.length == 2) {
             try {
-                GameData selected = listedGames.get(Integer.parseInt(params[0]));
-                ChessGame.TeamColor color = ChessGame.TeamColor.fromString(params[1]);
-                playingAs = color;
+                globalGameId = Integer.parseInt(params[0]);
+                GameData selected = listedGames.get(globalGameId);
+                playingAs = ChessGame.TeamColor.fromString(params[1]);
 
-                JoinGameRequest request = new JoinGameRequest(color, selected.gameID());
-
+                createWebSocket();
+                JoinGameRequest request = new JoinGameRequest(playingAs, selected.gameID());
                 server.joinGame(auth.authToken(), request);
-                try {
-                    PrintStream printStream = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-                    BoardPrinter boardPrinter = new BoardPrinter(selected.game().getBoard());
-                    boardPrinter.drawBoard(color);
-                    return "Successfully joined game ";
-                } catch (Exception e) {
-                    return e.getMessage();
-                }
+                ws.joinGame(auth.authToken(), selected.gameID());
+                state = State.PLAYING;
             }
             catch (Exception e) {
                 return e.getMessage();
@@ -180,11 +139,13 @@ public class ChessClient {
     }
 
     public String observeGame(String... params) throws ResponseException {
-        assertAuthenticated();
+        assertLoginState();
         if (params.length == 1) {
             try {
-                int gameId = listedGames.get(Integer.parseInt(params[0])).gameID();
-                ws = new WebSocketFacade(serverUrl, serverMessageHandler, auth.authToken());
+                globalGameId = Integer.parseInt(params[0]);
+                int gameId = listedGames.get(globalGameId).gameID();
+
+                createWebSocket();
                 ws.observeGame(auth.authToken(), gameId);
                 state = State.OBSERVING;
 
@@ -199,44 +160,141 @@ public class ChessClient {
 
     private String highlightMoves() throws ResponseException {
         assertPlayingOrObserving();
-        return "resign";
+        return "highlight";
     }
 
     private String resign() throws ResponseException {
         assertPlaying();
-        return "resign";
-    }
-
-    private String redraw() throws ResponseException {
-        assertPlayingOrObserving();
-
-        if (state == State.OBSERVING) {
-            ws.redrawBoard(ChessGame.TeamColor.WHITE);
+        try {
+            System.out.println("Are you sure you want to resign? (Y/n");
+            if (System.console().readLine().equals("Y")) {
+                ws.resign(auth.authToken(), globalGameId);
+            } else {
+                return "Don't give up, try rook to E4";
+            }
+        } catch (Exception e) {
+            return e.getMessage();
         }
-
-
-        return "";
+        return "Player resigned";
     }
 
-    private String leaveGame() throws ResponseException {
+    private String leaveGame() throws ResponseException, IOException {
         assertPlayingOrObserving();
+        ws.leave(auth.authToken(), listedGames.get(globalGameId).gameID());
         state = State.LOGGED_IN;
-
         return "Left the game";
     }
 
     private String makeMove(String... params) throws ResponseException {
         assertPlaying();
+
+        if (params.length == 2) {
+            try {
+                String from  = params[0];
+                String to = params[1];
+
+                int fromRow = Integer.parseInt(String.valueOf(from.charAt(1)));
+                int fromCol = intFromLetter(from.charAt(0));
+
+                int toRow = Integer.parseInt(String.valueOf(to.charAt(1)));
+                int toCol = intFromLetter(to.charAt(0));
+
+                ChessMove move = new ChessMove(new ChessPosition(fromRow, fromCol), new ChessPosition(toRow, toCol));
+                ws.makeMove(auth.authToken(), listedGames.get(globalGameId).gameID(), move);
+                return "made move";
+
+            } catch (Exception e ) {
+                throw new ResponseException(400, e.getMessage());
+            }
+        }
+        throw new ResponseException(400, "Expected: <FROM> <TO>");
+    }
+
+    private String redraw() throws ResponseException {
+        assertPlayingOrObserving();
+        ChessBoard board = ws.getLatestBoard();
+        BoardPrinter printer = new BoardPrinter(board);
+
+        if (state == State.OBSERVING) {
+            printer.drawBoard(ChessGame.TeamColor.WHITE);
+        } else {
+            printer.drawBoard(playingAs);
+        }
         return "";
     }
 
+    private void createWebSocket() throws ResponseException {
+        if (ws == null) {
+            ws = new WebSocketFacade(serverUrl, serverMessageHandler, auth.authToken());
+        }
+    }
+
+    private String authenticateUser(boolean isRegistration, String... params) throws ResponseException {
+        String operationName = isRegistration ? "registered" : "logged in";
+
+        if (auth != null) {
+            throw new ResponseException(400, "You are already logged in, try 'logout'");
+        }
+
+        if (params.length >= 2) {
+            try {
+                String username = params[0];
+                String password = params[1];
+                String email = isRegistration && params.length > 2 ? params[2] : "";
+
+                AuthResponse response;
+                if (isRegistration) {
+                    response = server.register(new UserData(username, password, email));
+                } else {
+                    response = server.login(new UserData(username, password, ""));
+                }
+
+                auth = new AuthData(response.getUsername(), response.getAuthToken());
+                state = State.LOGGED_IN;
+                return "Successfully " + operationName + " " + auth.username();
+            } catch (ResponseException e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <USERNAME> <PASSWORD>" + (isRegistration ? " <EMAIL>" : ""));
+    }
+
+    private String formatGameList(ListGamesResponse listGamesResponse) {
+        StringBuilder res = new StringBuilder();
+        res.append(String.format("%-10s %-20s %-15s %-15s%n", "Game ID", "Game Name", "White Player", "Black Player"));
+        res.append("---------------------------------------------------------\n");
+
+        for (int i = 1; i < listGamesResponse.getGames().size() + 1; i++) {
+            GameData game = listGamesResponse.getGames().get(i - 1);
+            listedGames.put(i,game);
+            res.append(String.format("%-10d %-20s %-15s %-15s%n",
+                    i, game.gameName(), game.whiteUsername(), game.blackUsername()));
+        }
+        return res.toString();
+    }
+
+    private int intFromLetter(char ch) {
+        if (ch < 'a' || ch > 'h') {
+            throw new IllegalArgumentException("Invalid character: " + ch);
+        }
+
+        return ch - 'a' + 1;
+    }
+
     public void showUser() {
-        if (state == State.LOGGED_IN) {
+        if (state != State.LOGGED_OUT) {
             System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED IN - " +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + auth.username() + EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " ] >>> ");
         } else {
             System.out.printf(EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "%n[LOGGED OUT] >>> ");
         }
+    }
+
+    private void clearLocalData() {
+        state = State.LOGGED_OUT;
+        playingAs = null;
+        auth = null;
+        globalGameId = 0;
     }
 
     private void assertAuthenticated() throws ResponseException {
@@ -256,6 +314,13 @@ public class ChessClient {
         assertAuthenticated();
         if (state != State.PLAYING) {
             throw new ResponseException(400, "You must be playing a game to run this command");
+        }
+    }
+
+    private void assertLoginState() throws ResponseException {
+        assertAuthenticated();
+        if (state == State.PLAYING || state == State.OBSERVING) {
+            throw new ResponseException(400, "You can't run this command right now, try 'leave' first");
         }
     }
 
@@ -301,7 +366,7 @@ public class ChessClient {
     }};
 
     private static final Map<String, String> GAMEPLAY_COMMANDS = new LinkedHashMap<>() {{
-        put("move <TO> <FROM>", " - a piece on your turn. TO/FROM notation ('a1 d6')");
+        put("move <FROM> <TO>", " - a piece on your turn. FROM/TO notation ('a1 d6')");
         put("resign", " - from the match");
         put("help", " - with possible commands");
     }};

@@ -23,14 +23,14 @@ public class ServerFacade {
         this.serverUrl = baseUrl + port;
     }
 
-    public RegisterResponse register(UserData user) throws ResponseException {
+    public AuthResponse register(UserData user) throws ResponseException {
         var path = "/user";
-        return this.makeRequest("POST", path, null, user, RegisterResponse.class);
+        return this.makeRequest("POST", path, null, user, AuthResponse.class);
     }
 
-    public LoginResponse login(UserData user) throws ResponseException {
+    public AuthResponse login(UserData user) throws ResponseException {
         var path = "/session";
-        return this.makeRequest("POST", path, null, user, LoginResponse.class);
+        return this.makeRequest("POST", path, null, user, AuthResponse.class);
     }
 
     public void logout(String token) throws ResponseException {

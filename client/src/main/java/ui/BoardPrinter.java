@@ -16,7 +16,7 @@ public class BoardPrinter {
 
     private static final int BOARD_SIZE = 8;
     private static final String EMPTY_SQUARE = "   ";
-    private ChessBoard board;
+    private final ChessBoard board;
 
     public BoardPrinter(ChessBoard board) {
         this.board = board;
@@ -87,18 +87,6 @@ public class BoardPrinter {
             return EMPTY_SQUARE;
         }
     }
-
-    public String getColumnPiece(int col, boolean isBlack) {
-        return switch (col) {
-            case 1, 8 -> isBlack ? BLACK_ROOK : WHITE_ROOK;
-            case 2, 7 -> isBlack ? BLACK_KNIGHT : WHITE_KNIGHT;
-            case 3, 6 -> isBlack ? BLACK_BISHOP : WHITE_BISHOP;
-            case 4 -> isBlack ? BLACK_QUEEN : WHITE_QUEEN;
-            case 5 -> isBlack ? BLACK_KING : WHITE_KING;
-            default -> EMPTY_SQUARE;
-        };
-    }
-
 
     private void setWhite(PrintStream out) {
         out.print(SET_BG_COLOR_BLACK);

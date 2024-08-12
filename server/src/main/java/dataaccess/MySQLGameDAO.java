@@ -89,10 +89,13 @@ public class MySQLGameDAO implements GameDAO {
     @Override
     public void updateGame(GameData gameData) throws SQLException, DataAccessException {
         GameData gameToUpdate = getGame(gameData.gameID());
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ChessPosition.class, new ChessPositionAdapter())
+                .create();
 
         if (gameToUpdate != null) {
             String stmt = "UPDATE Game SET white_username = ?, black_username = ?, name = ?, game = ? WHERE game_id = ?";
-            var json = Serializer.serialize(gameData.game());
+            var json = gson.toJson(gameData.game());
             DatabaseManager.executeUpdate(stmt, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), json, gameToUpdate.gameID());
         }
     }
