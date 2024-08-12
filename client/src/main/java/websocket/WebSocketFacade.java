@@ -52,4 +52,6 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    public void joinGame(String authToken, int gameId) {}
+
 }

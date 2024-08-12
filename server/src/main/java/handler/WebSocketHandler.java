@@ -1,16 +1,15 @@
 package handler;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.*;
 import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import service.GameService;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -31,20 +30,19 @@ public class WebSocketHandler {
     private final AuthDAO authDAO = new MySQLAuthDAO();
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) throws IOException, SQLException, DataAccessException {
+    public void onMessage(Session session, String message) throws IOException, DataAccessException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
             case CONNECT -> connect(command.getAuthToken(), command.getGameID(), session);
-            case MAKE_MOVE -> makeMove();
+            case MAKE_MOVE -> {
+                MakeMoveCommand moveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
+                makeMove(moveCommand.getAuthToken(), moveCommand.getGameID(), session, moveCommand.getMove());
+            }
             case LEAVE -> leave();
             case RESIGN -> resign();
         }
     }
 
-    @OnWebSocketError
-    public void onError(Session session, Throwable error) {
-        System.out.println(error.getMessage());
-    }
 
     private void connect(String authToken, int gameId, Session session) throws IOException, DataAccessException {
         if (!connections.containsKey(gameId)) {
@@ -52,14 +50,12 @@ public class WebSocketHandler {
         }
         connections.get(gameId).add(session);
         var message = String.format("%s connected", authToken);
-
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+
         try {
             validateAuth(authToken);
-
-            GameData chessGame = gameDAO.getGame(gameId);
-            ChessGame game = chessGame.game();
-            ServerMessage loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, new GameData("test", game));
+            GameData gameData = getGame(gameId);
+            ServerMessage loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, new GameData("test", gameData.game()));
 
             session.getRemote().sendString(Serializer.serialize(loadGame));
             notifyOthers(gameId, notification, session);
@@ -68,11 +64,31 @@ public class WebSocketHandler {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
             session.getRemote().sendString(Serializer.serialize(errorMessage));
         }
-    };
+    }
 
-    private void makeMove() {};
-    private void leave() {};
-    private void resign() {};
+    private void makeMove(String authToken, int gameId, Session session, ChessMove move) throws IOException, DataAccessException {
+        try {
+            GameData gameData = getGame(gameId);
+            ChessGame game = gameData.game();
+            if (!game.validMoves(move.getStartPosition()).contains(move.getEndPosition())) {
+                throw new RuntimeException("Invalid move");
+            }
+
+            game.makeMove(move);
+            GameData update = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+            gameDAO.updateGame(update);
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Player made move");
+            notifyAll(update);
+            notifyOthers(update.gameID(), notification, session);
+
+        } catch (Exception e) {
+            ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
+            session.getRemote().sendString(Serializer.serialize(errorMessage));
+        }
+    }
+
+    private void leave() {}
+    private void resign() {}
 
     private void notifyOthers(int gameId, NotificationMessage notification, Session toExclude) throws IOException {
         Set<Session> sessions = connections.get(gameId);
@@ -87,6 +103,16 @@ public class WebSocketHandler {
         }
     }
 
+    private void notifyAll(GameData gameData) throws IOException {
+        Set<Session> sessions = connections.get(gameData.gameID());
+        LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+        for (Session session : sessions) {
+            if (session.isOpen()) {
+                session.getRemote().sendString(Serializer.serialize(loadGameMessage));
+            }
+        }
+    }
+
     private void validateAuth(String authToken) throws ResponseException {
         try {
             if (authDAO.getAuth(authToken) == null) {
@@ -95,6 +121,13 @@ public class WebSocketHandler {
         } catch (DataAccessException e) {
             throw new ResponseException(500, "Unable to reach database");
         }
+    }
+
+    private GameData getGame(int gameId) throws SQLException, DataAccessException, ResponseException {
+        if (gameDAO.getGame(gameId) != null) {
+            return gameDAO.getGame(gameId);
+        }
+        throw new ResponseException(402, "Game not found");
     }
 
 }
