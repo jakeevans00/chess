@@ -16,7 +16,7 @@ public class ChessGameState {
     }
 
     public enum Status {
-            IN_PROGRESS, CHECKMATE, STALEMATE, RESIGNED
+            IN_PROGRESS, PAUSED, CHECKMATE, STALEMATE, RESIGNED
     }
 
     public void setStatus(Status status) {

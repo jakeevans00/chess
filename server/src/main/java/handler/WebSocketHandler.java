@@ -37,7 +37,7 @@ public class WebSocketHandler {
                 MakeMoveCommand moveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
                 makeMove(moveCommand.getAuthToken(), moveCommand.getGameID(), session, moveCommand.getMove());
             }
-            case LEAVE -> leave();
+            case LEAVE -> leave(command.getAuthToken(), command.getGameID(), session);
             case RESIGN -> resign(command.getAuthToken(), command.getGameID(), session);
         }
     }
@@ -99,8 +99,23 @@ public class WebSocketHandler {
         }
     }
 
-    private void leave() {}
+    private void leave(String authToken, int gameId, Session session) throws IOException, DataAccessException {
+        try {
+            GameData gameData = getGame(gameId);
+            AuthData authData = getAuth(authToken);
+            GameData update = getGameData(gameId, gameData, authData);
 
+            gameDAO.updateGame(update);
+            removeSession(gameId, session);
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                                              authData.username() + " has left the game");
+            notifyOthers(gameId, notification, session);
+
+        } catch (Exception e) {
+            ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
+            session.getRemote().sendString(Serializer.serialize(errorMessage));
+        }
+    }
 
     private void resign(String authToken, int gameId, Session session) throws IOException {
         try {
@@ -125,6 +140,11 @@ public class WebSocketHandler {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
             session.getRemote().sendString(Serializer.serialize(errorMessage));
         }
+    }
+
+    private void removeSession(int gameId, Session session) {
+        Set<Session> sessions = connections.get(gameId);
+        sessions.remove(session);
     }
 
     private void notifyOthers(int gameId, NotificationMessage notification, Session toExclude) throws IOException {
@@ -184,6 +204,25 @@ public class WebSocketHandler {
         if (!authData.username().equals(gameData.blackUsername()) && !authData.username().equals(gameData.whiteUsername())) {
             throw new RuntimeException("Error, observer cannot make moves");
         }
+    }
+
+    private static GameData getGameData(int gameId, GameData gameData, AuthData authData) {
+        GameData update = null;
+
+        if (gameData.blackUsername().equals(authData.username())) {
+            update = new GameData(gameId, gameData.whiteUsername(),
+                    null, gameData.gameName(), gameData.game() );
+        }
+
+        if (gameData.whiteUsername().equals(authData.username())) {
+            update = new GameData(gameId, null,
+                    gameData.blackUsername(), gameData.gameName(), gameData.game() );
+        }
+
+        if (update == null) {
+            update = gameData;
+        }
+        return update;
     }
 
 }
