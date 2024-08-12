@@ -187,19 +187,24 @@ public class ChessMoveRules {
             return moves;
         }
 
-        ChessMove prevMove = board.history.peek().getFirst();
-        if (prevMove == null) {
+        ChessMove lastMove = board.history.peek().getFirst();
+        if (lastMove == null) {
             return moves;
         }
 
-        ChessPiece prevMovePiece = board.getPiece(prevMove.getEndPosition());
-        int prevMoveEndRow = prevMove.getEndPosition().getRow();
-        int distance = Math.abs(prevMove.getStartPosition().getRow() - prevMove.getEndPosition().getRow());
-        if (prevMovePiece != null &&
-            prevMovePiece.getPieceType() == ChessPiece.PieceType.PAWN &&
-            distance == 2 && myPosition.getRow() == prevMoveEndRow)
+        ChessPiece lastMovePiece = board.getPiece(lastMove.getEndPosition());
+        int lastMoveEndRow = lastMove.getEndPosition().getRow();
+        int distance = Math.abs(lastMove.getStartPosition().getRow() - lastMove.getEndPosition().getRow());
+
+        if (lastMovePiece != null &&
+                lastMovePiece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                distance == 2 && myPosition.getRow() == lastMoveEndRow)
         {
-            moves.add(new ChessMove(myPosition, new ChessPosition(prevMove.getEndPosition().getRow() + mod, prevMove.getEndPosition().getColumn())));
+            if (Math.abs(myPosition.getColumn() - lastMove.getEndPosition().getColumn()) == 1) {
+                moves.add(new ChessMove(myPosition,
+                        new ChessPosition(lastMove.getEndPosition().getRow() + mod, lastMove.getEndPosition().getColumn()),
+                        null));
+            }
         }
 
         return moves;

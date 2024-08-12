@@ -45,6 +45,8 @@ public class BoardPrinter {
         char startLetter = whitePerspective ? 'a' : 'h';
         char endLetter = whitePerspective ? 'h' : 'a';
 
+        Set<ChessPosition> highlightAdjusted = adjustForPerspective(perspective, highlight);
+
         out.print("  ");
         for (char letter = startLetter;
              (whitePerspective ? letter <= endLetter : letter >= endLetter);
@@ -63,8 +65,8 @@ public class BoardPrinter {
 
             for (int col = 1; col <= BOARD_SIZE; col++) {
                 ChessPosition position = new ChessPosition(row, col);
-                if (!highlight.isEmpty() && highlight.contains(position)) {
-                    setHighlight(out, row, col);
+                if (!highlightAdjusted.isEmpty() && highlightAdjusted.contains(position)) {
+                    setHighlight(out, row, col, perspective);
                 } else {
                     if ((row + col + 1) % 2 == 0) {
                         setWhite(out);
@@ -111,7 +113,7 @@ public class BoardPrinter {
         out.print(SET_TEXT_COLOR_YELLOW);
     }
 
-    private void setHighlight(PrintStream out, int row, int col) {
+    private void setHighlight(PrintStream out, int row, int col, ChessGame.TeamColor perspective) {
         if ((row + col + 1) % 2 == 0) {
             out.print(SET_BG_COLOR_GREEN);
         } else {
@@ -123,5 +125,19 @@ public class BoardPrinter {
     private void resetColors(PrintStream out) {
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
+    }
+
+    private Set<ChessPosition> adjustForPerspective (ChessGame.TeamColor perspective, Set<ChessPosition> highlight) {
+        if (perspective.equals(ChessGame.TeamColor.BLACK)) {
+            Set<ChessPosition> adjusted = new HashSet<>();
+            for (ChessPosition position : highlight) {
+                int rowAdjusted = (BOARD_SIZE + 1 - position.getRow());
+                int colAdjusted = (BOARD_SIZE + 1 - position.getColumn());
+                adjusted.add(new ChessPosition(rowAdjusted, colAdjusted));
+            }
+            return adjusted;
+        } else {
+            return highlight;
+        }
     }
 }

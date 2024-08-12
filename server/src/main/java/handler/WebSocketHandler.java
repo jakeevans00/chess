@@ -47,10 +47,12 @@ public class WebSocketHandler {
             connections.put(gameId, new HashSet<>());
         }
         connections.get(gameId).add(session);
-        var message = String.format("%s connected", authToken);
-        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
 
         try {
+            AuthData authData = authDAO.getAuth(authToken);
+            var message = String.format("%s connected", authData.username());
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+
             validateAuth(authToken);
             GameData gameData = getGame(gameId);
             LoadGameMessage loadGame =
@@ -73,29 +75,14 @@ public class WebSocketHandler {
             GameData gameData = getGame(gameId);
             ChessGame game = gameData.game();
 
-            if (!game.validMoves(move.getStartPosition()).contains(move)) {
-                throw new RuntimeException("Error, invalid move");
-            }
-
-            if (game.getTeamTurn() == ChessGame.TeamColor.WHITE && Objects.equals(gameData.blackUsername(), authData.username()) ||
-                game.getTeamTurn() == ChessGame.TeamColor.BLACK && Objects.equals(gameData.whiteUsername(), authData.username())) {
-                throw new RuntimeException("Error, can't move on opponent's turn");
-            }
-
-            validateNotObserver(authData, gameData);
-
-            if (game.state.getStatus() != ChessGameState.Status.IN_PROGRESS) {
-                throw new RuntimeException("Error: Game over, cannot make moves");
-            }
+            validateMove(game, move, authData, gameData);
 
             game.makeMove(move);
-            GameData update = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
-            gameDAO.updateGame(update);
-            Map<ChessPosition, ChessPiece> updatedBoard = update.game().getBoard().getChessPieces();
+            GameData updatedGameData = updateGameData(gameData, game);
 
-            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Player made move");
-            notifyAll(updatedBoard, gameId, getColor(authData, gameData));
-            notifyOthers(update.gameID(), notification, session);
+            String message = authData.username() + " made move " + formatMove(move);
+            notifyPlayers(updatedGameData, session, message, authData);
+            notifyStatusChange(updatedGameData, session);
 
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
@@ -113,7 +100,7 @@ public class WebSocketHandler {
             gameDAO.updateGame(update);
             removeSession(gameId, session);
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                                              authData.username() + " has left the game");
+                                                              authData.username() + " left the game");
             notifyOthers(gameId, notification, session);
 
         } catch (Exception e) {
@@ -130,7 +117,9 @@ public class WebSocketHandler {
 
             validateNotObserver(authData, gameData);
 
-            if (game.state.getStatus() != ChessGameState.Status.IN_PROGRESS) {
+            if (game.state.getStatus() == ChessGameState.Status.CHECKMATE ||
+                game.state.getStatus() == ChessGameState.Status.STALEMATE ||
+                game.state.getStatus() == ChessGameState.Status.RESIGNED) {
                 throw new RuntimeException("Error: Game over, cannot resign");
             }
 
@@ -144,6 +133,58 @@ public class WebSocketHandler {
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, e.getMessage());
             session.getRemote().sendString(Serializer.serialize(errorMessage));
+        }
+    }
+
+    private void validateMove(ChessGame game, ChessMove move, AuthData authData, GameData gameData) {
+        if (game.state.getStatus() == ChessGameState.Status.CHECKMATE ||
+            game.state.getStatus() == ChessGameState.Status.STALEMATE ||
+            game.state.getStatus() == ChessGameState.Status.RESIGNED) {
+            throw new RuntimeException("Game over, cannot make moves");
+        }
+
+        if (!game.validMoves(move.getStartPosition()).contains(move)) {
+            throw new RuntimeException("Invalid move");
+        }
+
+        if (isWrongTurn(game, authData, gameData)) {
+            throw new RuntimeException("Can't move on opponent's turn");
+        }
+
+        validateNotObserver(authData, gameData);
+    }
+
+    private boolean isWrongTurn(ChessGame game, AuthData authData, GameData gameData) {
+        return (game.getTeamTurn() == ChessGame.TeamColor.WHITE && Objects.equals(gameData.blackUsername(), authData.username())) ||
+                (game.getTeamTurn() == ChessGame.TeamColor.BLACK && Objects.equals(gameData.whiteUsername(), authData.username()));
+    }
+
+    private GameData updateGameData(GameData gameData, ChessGame game) throws DataAccessException, SQLException {
+        GameData updatedGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        gameDAO.updateGame(updatedGameData);
+        return updatedGameData;
+    }
+
+    private void notifyPlayers(GameData updatedGameData, Session session, String message, AuthData authData) throws IOException, DataAccessException {
+        Map<ChessPosition, ChessPiece> updatedBoard = updatedGameData.game().getBoard().getChessPieces();
+        notifyAll(updatedBoard, updatedGameData.gameID(), getColor(authData, updatedGameData));
+
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        notifyOthers(updatedGameData.gameID(), notification, session);
+    }
+
+    private void notifyStatusChange(GameData gameData, Session session) throws IOException, DataAccessException {
+        ChessGameState.Status status = gameData.game().state.getStatus();
+        if (status == ChessGameState.Status.CHECKMATE || status == ChessGameState.Status.STALEMATE) {
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Game over by " + status.toString());
+            notifyAll(gameData.gameID(), notification);
+        }
+
+        if (status == ChessGameState.Status.CHECK) {
+            NotificationMessage notification =
+                    new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.game().state.getTurn().toString() + " in " + status.toString());
+            notifyAll(gameData.gameID(), notification);
         }
     }
 
@@ -229,7 +270,7 @@ public class WebSocketHandler {
         return authDAO.getAuth(authToken);
     }
 
-    private void validateNotObserver(AuthData authData, GameData gameData) throws DataAccessException {
+    private void validateNotObserver(AuthData authData, GameData gameData) {
         if (!authData.username().equals(gameData.blackUsername()) && !authData.username().equals(gameData.whiteUsername())) {
             throw new RuntimeException("Error, observer cannot make moves");
         }
@@ -251,7 +292,23 @@ public class WebSocketHandler {
         return gameData;
     }
 
-    private ChessGame.TeamColor getColor(AuthData authData, GameData gameData) throws DataAccessException {
+    private String formatMove(ChessMove move) {
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
+
+        String startString = formatPosition(start);
+        String endString = formatPosition(end);
+
+        return startString + " to " + endString;
+    }
+
+    private String formatPosition(ChessPosition position) {
+        char column = (char) ('a' + position.getColumn() - 1);
+        int row = position.getRow();
+        return String.format("%c%d", column, row);
+    }
+
+    private ChessGame.TeamColor getColor(AuthData authData, GameData gameData) {
         String blackUsername = gameData.blackUsername();
         String authUsername = authData.username();
 

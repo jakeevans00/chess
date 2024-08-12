@@ -1,6 +1,7 @@
 package websocket;
 
 import chess.ChessBoard;
+import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPosition;
 import com.google.gson.Gson;
@@ -69,10 +70,11 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void joinGame(String authToken, int gameId) throws IOException {
+    public void joinGame(String authToken, int gameId, ChessGame.TeamColor color) throws IOException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameId);
             session.getBasicRemote().sendText(new Gson().toJson(command));
+            serverMessageHandler.setTeamColor(color);
         } catch (Exception e) {
             throw new RuntimeException("in join on web socket facade" + e.getMessage());
         }
@@ -100,6 +102,7 @@ public class WebSocketFacade extends Endpoint {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameId);
             session.getBasicRemote().sendText(new Gson().toJson(command));
+            serverMessageHandler.setTeamColor(ChessGame.TeamColor.WHITE);
         } catch (Exception e) {
             throw new RuntimeException("in leave on web socket facade" + e.getMessage());
         }

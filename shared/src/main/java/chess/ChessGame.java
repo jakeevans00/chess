@@ -92,6 +92,14 @@ public class ChessGame {
         }
 
         TeamColor next = getOppositeColor(piece.getTeamColor());
+        if (isInCheckmate(next)) {
+            state.setStatus(ChessGameState.Status.CHECKMATE);
+        } else if (isInCheck(next)) {
+            state.setStatus(ChessGameState.Status.CHECK);
+        } else if (isInStalemate(next)) {
+            state.setStatus(ChessGameState.Status.STALEMATE);
+        }
+
         setTeamTurn(next);
     }
 

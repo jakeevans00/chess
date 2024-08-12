@@ -123,8 +123,9 @@ public class ChessClient {
                 createWebSocket();
                 JoinGameRequest request = new JoinGameRequest(playingAs, selected.gameID());
                 server.joinGame(auth.authToken(), request);
-                ws.joinGame(auth.authToken(), selected.gameID());
+                ws.joinGame(auth.authToken(), selected.gameID(), playingAs);
                 state = State.PLAYING;
+                return "";
             }
             catch (Exception e) {
                 return e.getMessage();
@@ -162,7 +163,6 @@ public class ChessClient {
                 int posRow = Integer.parseInt(String.valueOf(position.charAt(1)));
                 int posCol = intFromLetter(position.charAt(0));
                 ChessPosition startPosition = new ChessPosition(posRow, posCol);
-
                 ChessBoard board = ws.getLatestBoard();
                 BoardPrinter printer = new BoardPrinter(board, endingPositions(startPosition));
 
@@ -185,7 +185,7 @@ public class ChessClient {
         try {
             System.out.println("Are you sure you want to resign? (Y/n");
             if (System.console().readLine().equals("Y")) {
-                ws.resign(auth.authToken(), globalGameId);
+                ws.resign(auth.authToken(), listedGames.get(globalGameId).gameID());
             } else {
                 return "Don't give up, try rook to E4";
             }
@@ -199,7 +199,7 @@ public class ChessClient {
         assertPlayingOrObserving();
         ws.leave(auth.authToken(), listedGames.get(globalGameId).gameID());
         state = State.LOGGED_IN;
-        return "Left the game";
+        return "";
     }
 
     private String makeMove(String... params) throws ResponseException {
