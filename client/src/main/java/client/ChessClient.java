@@ -1,9 +1,6 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
+import chess.*;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
@@ -17,9 +14,7 @@ import websocket.ServerMessageHandler;
 import websocket.WebSocketFacade;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ChessClient {
@@ -63,7 +58,7 @@ public class ChessClient {
                 case "leave" -> leaveGame();
                 case "redraw" -> redraw();
                 case "resign" -> resign();
-                case "highlight" -> highlightMoves();
+                case "highlight" -> highlightMoves(params);
 
                 default -> "Invalid command, try typing 'help'";
             };
@@ -158,9 +153,31 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <GAME_ID>");
     }
 
-    private String highlightMoves() throws ResponseException {
+    private String highlightMoves(String... params) throws ResponseException {
         assertPlayingOrObserving();
-        return "highlight";
+        if (params.length == 1) {
+            try {
+                String position  = params[0];
+
+                int posRow = Integer.parseInt(String.valueOf(position.charAt(1)));
+                int posCol = intFromLetter(position.charAt(0));
+                ChessPosition startPosition = new ChessPosition(posRow, posCol);
+
+                ChessBoard board = ws.getLatestBoard();
+                BoardPrinter printer = new BoardPrinter(board, endingPositions(startPosition));
+
+                if (state == State.OBSERVING) {
+                    printer.drawBoard(ChessGame.TeamColor.WHITE);
+                } else {
+                    printer.drawBoard(playingAs);
+                }
+                return "";
+
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        throw new ResponseException(400, "Expected: <FROM>");
     }
 
     private String resign() throws ResponseException {
@@ -221,6 +238,15 @@ public class ChessClient {
             printer.drawBoard(playingAs);
         }
         return "";
+    }
+
+    private Set<ChessPosition> endingPositions(ChessPosition startPosition) {
+        Collection<ChessMove> validMoves = ChessMoveRules.pieceMoves(ws.getLatestBoard(), startPosition);
+        Set<ChessPosition> endingPositions = new HashSet<>();
+        for (ChessMove validMove : validMoves) {
+            endingPositions.add(validMove.getEndPosition());
+        }
+        return endingPositions;
     }
 
     private void createWebSocket() throws ResponseException {

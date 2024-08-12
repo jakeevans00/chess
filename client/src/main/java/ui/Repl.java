@@ -7,6 +7,7 @@ import client.ChessClient;
 import com.google.gson.Gson;
 import handler.Serializer;
 import websocket.ServerMessageHandler;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -53,9 +54,11 @@ public class Repl implements ServerMessageHandler {
     @Override
     public void notify(ServerMessage notification) {
         if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
-            System.out.println("in notify");
+            NotificationMessage notificationMessage = (NotificationMessage) notification;
+            System.out.println(notificationMessage.getMessage());
         }  else {
-            System.out.println("error");
+            ErrorMessage error = (ErrorMessage) notification;
+            System.out.println(error.getErrorMessage());
         }
     }
 
